@@ -231,7 +231,30 @@ def analyze_pcap_dataframe(df, dst_ip):
         print("  - Packets:" + str(len(df_attack_vector_current)))
         print("  - #Src_IPs:" + str(len(src_ips_attack_vector_current)))
 
-        fingerprints.append(attack_vector)
+        merged_with_previous = False
+
+        if len(fingerprints) > 0:
+            previous_attack_vector = fingerprints[-1]
+
+            # Calculate the similarity between this new attack vector and the previous
+            similarity = len(set(previous_attack_vector["src_ips"]).intersection(set(attack_vector["src_ips"]))) / \
+                len(attack_vector["src_ips"])
+            # Only continue if it contains at least 50% of the IP addresses in this attack were
+            # also used in the previous attack, and the protocol is the same
+            if similarity > 0.5 and attack_vector["protocol"] == previous_attack_vector["protocol"]:
+                previous_attack_vector["src_ips"].extend(attack_vector["src_ips"])
+                previous_attack_vector["src_ips"] = list(set(previous_attack_vector["src_ips"]))
+                previous_attack_vector["dst_ports"].extend(attack_vector["dst_ports"])
+                previous_attack_vector["dst_ports"] = list(set(previous_attack_vector["dst_ports"]))
+                previous_attack_vector["src_ports"].extend(attack_vector["src_ports"])
+                previous_attack_vector["src_ports"] = list(set(previous_attack_vector["src_ports"]))
+                previous_attack_vector["total_src_ports"] = len(previous_attack_vector["src_ports"])
+                previous_attack_vector["total_src_ips"] = len(previous_attack_vector["src_ips"])
+
+                merged_with_previous = True
+
+        if not merged_with_previous:
+            fingerprints.append(attack_vector)
 
         #In case of loop stop
         if len(fingerprints)>10:
