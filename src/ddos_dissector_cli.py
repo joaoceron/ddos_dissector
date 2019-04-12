@@ -77,7 +77,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
         print(os.path.basename(input_file), 
             fingerprints[0]['multivector_key'], 
             [x['key'] for x in fingerprints],
-            [x['vector_filter'] for x in fingerprints],
+            [x['vector'] for x in fingerprints],
             [x['total_src_ips'] for x in fingerprints],
             sep=';')
 
