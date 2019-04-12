@@ -39,7 +39,7 @@ def anonymize(_input_file, _file_type, _victim_ip, _fingerprint):
 def ddos_dissector(input_file, dst_ip, verbose):
 
     # For storing the logs
-    if verbose == True:
+    if verbose == False:
         orig_stdout = sys.stdout
         f, f_name = tempfile.mkstemp()
         f = open(f_name, "w")
@@ -95,7 +95,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
         logfile_name = os.path.join(settings.OUTPUT_LOCATION,os.path.basename(input_file)+".log")
 
     ##Closing the logfile  
-    if log == True:  
+    if verbose == False:  
         sys.stdout = orig_stdout
         f.close()
         shutil.copy(f_name, logfile_name)
@@ -105,6 +105,14 @@ def ddos_dissector(input_file, dst_ip, verbose):
     print('\nDDoS dissector completed task! Please check:', logfile_name)
 
 
+def str2bool(v):
+    if v.lower() in ('yes', 'true', 't', 'y', '1'):
+        return True
+    elif v.lower() in ('no', 'false', 'f', 'n', '0'):
+        return False
+    else:
+        raise argparse.ArgumentTypeError('Boolean value expected.')
+
 if __name__ == '__main__':
     import argparse
 
@@ -112,12 +120,15 @@ if __name__ == '__main__':
 
     parser.add_argument('--input', metavar='input_file', required=True, help='Path of a input file')
     parser.add_argument('--dst-ip', metavar='dst_ip', required=False, help='IP that was attacked')
-    parser.add_argument('--verbose', metavar='verbose', required=False, help='Show log at the stdout')
+    # parser.add_argument('--verbose', metavar='verbose', required=False, help='Show log at the stdout')
+
+    parser.add_argument("--verbose", type=str2bool, nargs='?', default=False, help="Show log at the stdout.")
+# const=True,
 
     args = parser.parse_args()
     input_file = args.input
     dst_ip = args.dst_ip or False
-    verbose = args.verbose or True
+    verbose = args.verbose 
 
     check_requirements()
 

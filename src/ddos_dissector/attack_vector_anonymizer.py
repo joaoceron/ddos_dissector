@@ -184,25 +184,17 @@ def anonymize_nfdump(input_file, victim_ip, fingerprint, file_type):
     temporary_file_fd, temporary_file_name = tempfile.mkstemp()
 
     # running nfdump with the filters created above
-    p = subprocess.Popen(["/Users/Jessica/nfdump_modified/bin/nfdump -r " + input_file +
+    p = subprocess.Popen(["ddos_dissector/nfdump_modified/bin/nfdump -r " + input_file +
                           " -w " + temporary_file_name + " " + "'" + filter_out + "'"],
                          shell=True,
                          stdout=subprocess.PIPE)
 
-    # p = subprocess.Popen(["nfdump_modified/bin/nfdump -r " + input_file +
-    #                       " -w " + temporary_file_name + " " + "'" + filter_out + "'"],
-    #                      shell=True,
-    #                      stdout=subprocess.PIPE)
-
     p.communicate()
     p.wait()
 
-    p = subprocess.Popen(["/Users/Jessica/nfdump_modified/bin/nfanon -r " + temporary_file_name + " -w " +
+    p = subprocess.Popen(["ddos_dissector/nfdump_modified/bin/nfanon -r " + temporary_file_name + " -w " +
                           os.path.join(settings.OUTPUT_LOCATION, filename)],
                          shell=True, stdout=subprocess.PIPE)
-    # p = subprocess.Popen(["nfdump_modified/bin/nfanon -r " + temporary_file_name + " -w " +
-    #                       os.path.join(settings.OUTPUT_LOCATION, filename)],
-    #                      shell=True, stdout=subprocess.PIPE)
 
 
     print("writing nfdump file"+ fingerprint['ip_protocol'])
