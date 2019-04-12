@@ -657,17 +657,16 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             reflection_label = "Reflection & Amplification"
         attack_vector["vector"] = str(attack_vector_filter_string).replace("df_saved", "")
 
-        print(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))
 
-        print(
-                "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top1_dst_ip + "\n" +
-                "   - Involved " + str(len(ips_involved)) + " source IP addresses\n" +
-                "   - Using IP protocol " + protocolnumber2name(top1_protocol) + "\n" +
-                "   - " + port_label + "\n" +
-                #"   - " + fragment_label +
-                "   - " + reflection_label + "\n" +
-                #"   - " + spoofed_label + "\n" +
-                "   - " + "number of packets: " + str(pattern_packets))
+        # print(
+        #         "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top1_dst_ip + "\n" +
+        #         "   - Involved " + str(len(ips_involved)) + " source IP addresses\n" +
+        #         "   - Using IP protocol " + protocolnumber2name(top1_protocol) + "\n" +
+        #         "   - " + port_label + "\n" +
+        #         #"   - " + fragment_label +
+        #         "   - " + reflection_label + "\n" +
+        #         #"   - " + spoofed_label + "\n" +
+        #         "   - " + "number of packets: " + str(pattern_packets))
 
         all_patterns.append(attack_vector)
 
@@ -675,6 +674,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             if debug:
                 print("STOP ANALYSIS; LOOKS LIKE A LOOP; RE-CHECK THE DISSECTOR SOURCE CODE!!")
             break
+
+
         if (top1_protocol == 'ICMP'): 
             if (attack_vector['additional'] == 'icmp_type: 3'):
                 df_saved = df_saved[eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|').replace('<','>'))]
@@ -683,7 +684,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             else:
                 df_saved = df_saved[eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))]
         else:
-            df_saved = df_saved[eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))]
+            print(eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|')))
+            #df_saved = df_saved[eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))]
 
 
         df_filtered = df_saved
