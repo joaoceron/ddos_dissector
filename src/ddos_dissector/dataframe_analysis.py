@@ -60,20 +60,21 @@ def analyze_pcap_dataframe(df, dst_ip):
         # Analyse the distribution of IP protocols (and defining the top1)
         #STEP 3.2
         print('STEP 3.2: Discovering Top 1 IP Protocol...')
-        protocol_distribution = df_remaining['_ws.col.Protocol'].value_counts().head()
+        
+        protocol_distribution = df_remaining['ip.proto'].value_counts().head()
         print("DISTRIBUTION OF TOP IP PROTOCOLS: \n",protocol_distribution)
         top1_protocol = protocol_distribution.keys()[0]
         print("\n OUTPUT 3.2:", top1_protocol)
         print('********************************************************************************************')
 
-        filter_top_protocol_string = "df_remaining['_ws.col.Protocol']=='" + str(top1_protocol) + "'"
+        filter_top_protocol_string = "df_remaining['ip.proto']=='" + str(top1_protocol) + "'"
         attack_vector['ip_protocol'] = top1_protocol
 
         attack_vector_filter_string = ""
 
         # Define if the remaining is based on the top1 source OR destination port
         if top1_protocol == 'IPv4':
-            fragmentation_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'IPv4']['fragmentation'].value_counts()
+            fragmentation_distribution = df_remaining[df_remaining['ip.proto'] == 'IPv4']['fragmentation'].value_counts()
             print("DISTRIBUTION OF FRAGMENTATION:", fragmentation_distribution)
 
             if fragmentation_distribution.keys()[0]:
@@ -84,12 +85,12 @@ def analyze_pcap_dataframe(df, dst_ip):
 
         else:
             # Analyse the distribution of SOURCE ports AND define the top1
-            port_source_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == top1_protocol]['srcport'].value_counts().head()
+            port_source_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['srcport'].value_counts().head()
             print("DISTRIBUTION OF TOP SOURCE PORT:", port_source_distribution)
             top1_source_port = math.floor(port_source_distribution.keys()[0])
 
             # Analyse the distribution of DESTINATION ports AND define the top1
-            port_destination_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == top1_protocol]['dstport'].value_counts().head()
+            port_destination_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['dstport'].value_counts().head()
             print("DISTRIBUTION OF TOP DESTINATION PORTS:",port_destination_distribution)
             top1_destination_port = math.floor(port_destination_distribution.keys()[0])
 
@@ -105,7 +106,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             #Analysis for ICMP
             if top1_protocol == 'ICMP':
                 
-                icmp_type_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'ICMP']['icmp.type'].value_counts()
+                icmp_type_distribution = df_remaining[df_remaining['ip.proto'] == 'ICMP']['icmp.type'].value_counts()
                 print("DISTRIBUTION OF TOP ICMP TYPES:", icmp_type_distribution)
 
                 top1_icmp_type = icmp_type_distribution.keys()[0]
@@ -115,7 +116,7 @@ def analyze_pcap_dataframe(df, dst_ip):
 
                 # if top1_protocol == 'QUIC':
                 #     quic_payload_distribution = \
-                #         df_remaining[df_remaining['_ws.col.Protocol']=='QUIC']['quic.payload'].value_counts()
+                #         df_remaining[df_remaining['ip.proto']=='QUIC']['quic.payload'].value_counts()
                 #     if debug: print('DISTRIBUTION QUIC PAYLOADS:',quic_payload_distribution.head())
                 #     top1_quic_payload_distribution = quic_payload_distribution.keys()[0]
                 #     filter_quic = "df_remaining['quic.payload']=='"+str(top1_quic_payload_distribution)+"'"
@@ -125,7 +126,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             
             #Analysis for TCP
             if top1_protocol == 'TCP':
-                tcp_flag_distribution =  df_remaining[df_remaining['_ws.col.Protocol'] == 'TCP']['tcp.flags.str'].value_counts().head()
+                tcp_flag_distribution =  df_remaining[df_remaining['ip.proto'] == 'TCP']['tcp.flags.str'].value_counts().head()
                 print("DISTRIBUTION OF TOP TCP FLAGS:",tcp_flag_distribution)
                 top1_tcp_flag = tcp_flag_distribution.keys()[0]
                 
@@ -136,14 +137,14 @@ def analyze_pcap_dataframe(df, dst_ip):
             
             #Analysis for DNS
             if top1_protocol == 'DNS':
-                dns_query_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'DNS']['dns.qry.name'].value_counts().head()
+                dns_query_distribution = df_remaining[df_remaining['ip.proto'] == 'DNS']['dns.qry.name'].value_counts().head()
                 print("DISTRIBUTION OF TOP DNS QUERIES:",dns_query_distribution)
                 top1_dns_query = dns_query_distribution.keys()[0]
 
                 filter_dns_query = "df_remaining['dns.qry.name']=='" + str(top1_dns_query) + "'"
                 attack_vector_filter_string += '&(' + str(filter_dns_query) + ')'
 
-                dns_type_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'DNS']['dns.qry.type'].value_counts().head()
+                dns_type_distribution = df_remaining[df_remaining['ip.proto'] == 'DNS']['dns.qry.type'].value_counts().head()
                 print("DISTRIBUTION OF TOP DNS TYPES:",dns_type_distribution)
                 top1_dns_type = dns_type_distribution.keys()[0]
                 
@@ -154,7 +155,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             
             #Analysis for NTP
             if top1_protocol == "NTP":
-                ntp_mode_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'NTP']['ntp.priv.reqcode'].value_counts().head()
+                ntp_mode_distribution = df_remaining[df_remaining['ip.proto'] == 'NTP']['ntp.priv.reqcode'].value_counts().head()
                 print("DISTRIBUTION OF TOP NTP RESPONSE:",ntp_mode_distribution)
                 top1_ntp_response = math.floor(ntp_mode_distribution.keys()[0])
 
