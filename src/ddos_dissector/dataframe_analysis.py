@@ -351,14 +351,14 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             # Calculate the distribution of source ports based on the first filter
         print('STEP 3.3A: Discovering Top 1 Src Port')
         percent_src_ports = df_filtered.groupby(by=['src_port'])['i_packets'].sum().sort_values(
-            ascending=False).divide(float(total_packets_filtered) / 100)
+            ascending=False).divide(float(total_packets_filtered) )
         print("\nDISTRIBUTION OF SOURCE PORT:",percent_src_ports.head()) 
             ## does it need a top src port now?
 
             # Calculate the distribution of destination ports after the first filter
         print('STEP 3.3B: Discovering Top 1 Dest Port')
         percent_dst_ports = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
-            ascending=False).divide(float(total_packets_filtered) / 100)
+            ascending=False).divide(float(total_packets_filtered) )
 
         print("\nDISTRIBUTION OF DESTINATION PORTS:", percent_dst_ports.head())
 
@@ -458,7 +458,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         if (top1_protocol == 'TCP'):
             # Check the existence of TCP flags
             tcp_flags_dis = df_pattern.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
-                ascending=False) #.divide(float(pattern_packets) / 100)
+                ascending=False) #.divide(float(pattern_packets) )
             if debug:
                 print("Distribution of TCP flags", tcp_flags_dis)
             top_tcp_flags = tcp_flags_dis.keys()[0]
@@ -467,7 +467,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             df_pattern = df_pattern[df_pattern['tcp_flag'] == tcp_flags_dis.keys()[0]]
             pattern_packets = df_pattern['i_packets'].sum()
             percent_tcp_flags = df_pattern.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
-                ascending=False).divide(float(pattern_packets) / 100)
+                ascending=False).divide(float(pattern_packets) )
 
 
 
@@ -523,13 +523,13 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
         #if (top1_protocol == 'TCP') or (top1_protocol == 'UDP'):
             # Calculating the distribution of source ports that remains
-        percent_src_ports = df_pattern.groupby(by=['src_port'])['i_packets'].sum().sort_values(ascending=False).divide(float(pattern_packets) / 100)
+        percent_src_ports = df_pattern.groupby(by=['src_port'])['i_packets'].sum().sort_values(ascending=False).divide(float(pattern_packets) )
         attack_vector["src_ports"] = percent_src_ports.to_dict()
         attack_vector["total_src_ports"] = len(percent_src_ports)
 
             # Calculating the distribution of destination ports after the first filter
         percent_dst_ports = df_pattern.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
-            ascending=False).divide(float(pattern_packets) / 100)
+            ascending=False).divide(float(pattern_packets) )
         attack_vector["dst_ports"] = percent_dst_ports.to_dict()
         attack_vector["total_dst_ports"] = len(attack_vector["dst_ports"])
         
