@@ -291,7 +291,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
     reflection_label = ""
     spoofed_label = ""
     fragment_label = ""
-    threshold_1to1 = 0.40
+    threshold_1to1 = 0.011
 
     #STEP 1: Discovering Top 1 Destination IP
     print('STEP 3.1: Discovering Top 1 Destination IP...')
@@ -381,7 +381,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 filter_p2 = "false"
 
                 print('********************************************************************************************')
-                print('STEP 3.3C: Analysing top 1 DESTINATION port frequency and THRESHOLD')
+                print('STEP 3.4: Analysing top 1 DESTINATION port frequency and THRESHOLD')
                 print('THRESHOLD =', threshold_1to1)
                 #attack_vector["selected_port"] = "src" + str(percent_src_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_src_port) + ')'
@@ -395,9 +395,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     filter_p2 = "true"
                     value_dest_dis = percent_dst_ports.values[0]
                     #filter = "src"
-                    print('\nOUTPUT 3.3C: DESTINATION port',percent_dst_ports.keys()[0], 'is considered as part of the attack vector.' )
+                    print('\nOUTPUT 3.4: DESTINATION port',percent_dst_ports.keys()[0], 'is considered as part of the attack vector.' )
                 else:
-                    print('\nOUTPUT 3.3C: DESTINATION port',percent_dst_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
+                    print('\nOUTPUT 3.4: DESTINATION port',percent_dst_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
 
 
             else:
@@ -406,7 +406,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                 filter_p2 = "false"
                 print('********************************************************************************************')
-                print('STEP 3.3C: Analysing top 1 SOURCE port frequency and THRESHOLD')
+                print('STEP 3.4: Analysing top 1 SOURCE port frequency and THRESHOLD')
                 print('THRESHOLD =', threshold_1to1)
                 #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_dst_port) + ')'
@@ -418,9 +418,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     filter_p2 = "true"
                     value_src_dis = percent_src_ports.values[0]
                     #filter = "dst"
-                    print('OUTPUT 3.3C: SOURCE port',percent_src_ports.keys()[0], 'is considered as part of the attack vector.' )
+                    print('OUTPUT 3.4: SOURCE port',percent_src_ports.keys()[0], 'is considered as part of the attack vector.' )
                 else:
-                    print('OUTPUT 3.3C: SOURCE port',percent_src_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
+                    print('OUTPUT 3.4: SOURCE port',percent_src_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
                     
 
         print('********************************************************************************************')
