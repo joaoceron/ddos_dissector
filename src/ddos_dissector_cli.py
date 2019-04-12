@@ -45,22 +45,33 @@ def ddos_dissector(input_file, dst_ip, verbose):
         f = open(f_name, "w")
         sys.stdout = f
 
-    print('1. Analysing the type of input file (e.g., pcap, pcapng, nfdump, netflow, and ipfix)...\n')
+    #STEP 0
+    rawfile_size = os.path.getsize(input_file)    
+
+    #STEP 1
+    print('STEP 1: Analysing the type of input file (e.g., pcap, pcapng, nfdump, netflow, and ipfix)...')
     file_type = ddd.determine_file_type(input_file)
+    print(file_type)
 
-    print('2. Converting input file to dataframe...\n')
+    #STEP 2
+    print('STEP 2: Converting input file to dataframe...')
     df = ddd.convert_to_dataframe(input_file, file_type)
+    rawfile_num_records = len(df)
+    print(rawfile_num_records, ' records')
 
-    print('3. Analysing the dataframe for finding attack patterns...\n')
+    #STEP 3
+    print('STEP 3: Analysing the dataframe for finding attack patterns...')
     victim_ip, fingerprints = ddd.analyze_dataframe(df, dst_ip, file_type)
 
+    #STEP 4
     if len(fingerprints) > 0:
-        print('4. Export fingerprints to json files and annonymizing each attack vector...\n')
+        print('STEP 4: Export fingerprints to json files and annonymizing each attack vector...\n')
         with Pool(settings.POOL_SIZE) as p:
             items = [(input_file, file_type, victim_ip, x) for x in fingerprints]
             p.starmap(anonymize, items)
 
-        print('5. Uploading the fingerprints and the anonymized .pcap to ddosdb.org...\n')
+    #STEP 5
+        print('STEP 5: Uploading the fingerprints and the anonymized .pcap to ddosdb.org...\n')
         for x in fingerprints:
             pcap_file = os.path.join(settings.OUTPUT_LOCATION, x['key'] + '.pcap')
             fingerprint_path = os.path.join(settings.OUTPUT_LOCATION, x['key'] + '.json')
@@ -72,7 +83,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
             except:
                 print('Fail! The output files were not uploaded to ddosdb.org')
 
-        # Storing the summary of the execution
+    # STEP 6: Storing the summary of the execution
         print("\nSUMMARY:")
         print(os.path.basename(input_file), 
             fingerprints[0]['multivector_key'], 
