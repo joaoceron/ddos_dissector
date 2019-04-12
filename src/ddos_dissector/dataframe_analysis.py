@@ -656,6 +656,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         if percent_src_ports.values[0] >= 1:
             attack_vector["reflected"] = True
             reflection_label = "Reflection & Amplification"
+        print("TESTEST++++++++")
         attack_vector["vector"] = str(attack_vector_filter_string).replace("df_saved", "")
 
 
