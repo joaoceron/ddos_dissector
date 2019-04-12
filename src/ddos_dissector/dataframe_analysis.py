@@ -376,17 +376,18 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
             if percent_src_ports.values[0] > percent_dst_ports.values[0]:
                 print("\nOUTPUT 3.3: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
-                print('********************************************************************************************')
-                print('\nTHRESHOLD =', threshold_1to1)
-
                 df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
                 filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                 filter_p2 = "false"
+
+                print('********************************************************************************************')
+                print('STEP 3.3C: Analysing top 1 DESTINATION port frequency and THRESHOLD')
+                print('THRESHOLD =', threshold_1to1)
                 #attack_vector["selected_port"] = "src" + str(percent_src_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_src_port) + ')'
 
                 #filter = "src"
-                print('\nSTEP 3.3C: Analysing DESTINATION frequency with THRESHOLD')
+                
                 if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
@@ -394,26 +395,27 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     filter_p2 = "true"
                     value_dest_dis = percent_dst_ports.values[0]
                     #filter = "src"
-                    print('OUTPUT 3.3D: filter second port ',filter_top2_p )
+                    print('\nOUTPUT 3.3C: DESTINATION port',filter_top2_p, 'is considered as part of the attack vector.' )
 
 
             else:
                     
-                print('\nTHRESHOLD =', threshold_1to1)
                 df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
                 filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                 filter_p2 = "false"
+                print('********************************************************************************************')
+                print('STEP 3.3C: Analysing top 1 SOURCE port frequency and THRESHOLD')
+                print('THRESHOLD =', threshold_1to1)
                 #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_dst_port) + ')'
 
-                print('\nSTEP 3.3C: Analysing SOURCE frequency with THRESHOLD')
                 if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
                     print("Src-Port over 50%, it is an own attack")
                     filter_p2 = "true"
                     value_src_dis = percent_src_ports.values[0]
-                    print('OUTPUT 3.3D: filter second port ',filter_top2_p )
+                    print('OUTPUT 3.3C: SOURCE port',filter_top2_p, 'is considered as part of the attack vector.' )
                     #filter = "dst"
 
         print('********************************************************************************************')
@@ -548,11 +550,11 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             if len(percent_dst_ports) == 1 or value_dest_dis > threshold_1to1:
                 if debug: print("\nCASE 1: 1 source port to 1 destination port")
                 #print(filter)
-                if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
-                    vector_filter_string += '&(' + str(filter_top2_p) + ')'
-                    #ips_involved = df_filtered['src_ip'].unique()
-                    print(" new filter: ", vector_filter_string)
-                    attack_vector["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
+                # if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
+                #     vector_filter_string += '&(' + str(filter_top2_p) + ')'
+                #     #ips_involved = df_filtered['src_ip'].unique()
+                #     print(" new filter: ", vector_filter_string)
+                #     attack_vector["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
 
                     # if debug: print("\nCASE 1: 1 source port to 1 destination port") if debug else next
                 port_label = "From " + portnumber2name(
