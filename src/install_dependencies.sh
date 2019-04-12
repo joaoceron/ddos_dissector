@@ -55,10 +55,10 @@ else
 fi
 
 echo "=========== CLONING REPOSITORY ==========="
-git clone https://github.com/Koenvh1/nfdump.git ../nfdump_modified
+git clone https://github.com/Koenvh1/nfdump.git ddos_dissector/nfdump_modified
 
 # Going into the just cloned repository
-cd "../nfdump_modified"
+cd "ddos_dissector/nfdump_modified"
 echo "=========== GENERATING ==========="
 /bin/sh ./autogen.sh
 
@@ -73,6 +73,7 @@ make install
 
 echo "=========== CONFIGURE DYNAMIC LIBRARIES ==========="
 ldconfig
+#if mac os you should do "sudo update_dyld_shared_cache"
 
 echo "=========== SETTING PERMISSIONS ==========="
 # Get the current user, and recursively set the permissions
