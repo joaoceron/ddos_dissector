@@ -396,6 +396,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     value_dest_dis = percent_dst_ports.values[0]
                     #filter = "src"
                     print('\nOUTPUT 3.3C: DESTINATION port',filter_top2_p, 'is considered as part of the attack vector.' )
+                else:
+                    print('\nOUTPUT 3.3C: DESTINATION port',filter_top2_p, 'is NOT considered as part of the attack vector.' )
 
 
             else:
@@ -415,8 +417,11 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     print("Src-Port over 50%, it is an own attack")
                     filter_p2 = "true"
                     value_src_dis = percent_src_ports.values[0]
-                    print('OUTPUT 3.3C: SOURCE port',filter_top2_p, 'is considered as part of the attack vector.' )
                     #filter = "dst"
+                    print('OUTPUT 3.3C: SOURCE port',filter_top2_p, 'is considered as part of the attack vector.' )
+                else:
+                    print('OUTPUT 3.3C: SOURCE port',filter_top2_p, 'is NOT considered as part of the attack vector.' )
+                    
 
         print('********************************************************************************************')
 
