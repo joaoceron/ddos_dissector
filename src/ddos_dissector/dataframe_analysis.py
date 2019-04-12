@@ -355,7 +355,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             if percent_src_ports.values[0] > percent_dst_ports.values[0]:
                 print("\nOUTPUT 3.3: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
                 df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
-                attack_vector_filter_string +="&(df_saved['src_port'] == '" + percent_src_ports.keys()[0] + "')"
+                attack_vector_filter_string +="&(df_saved['src_port'] == " + str(percent_src_ports.keys()[0]) + ")"
                 #filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                 filter_p2 = "false"
 
@@ -372,7 +372,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
                     filter_p2 = "true"
                     value_dest_dis = percent_dst_ports.values[0]
-                    attack_vector_filter_string +="&(df_saved['dst_port'] == '" + percent_dst_ports.keys()[0] + "')"
+                    attack_vector_filter_string +="&(df_saved['dst_port'] == " + str(percent_dst_ports.keys()[0]) + ")"
                     #filter = "src"
                     print('\nOUTPUT 3.4: DESTINATION port',percent_dst_ports.keys()[0], 'is considered as part of the attack vector.' )
                 else:
@@ -382,7 +382,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             else:
                     
                 df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
-                attack_vector_filter_string +="&(df_saved['dst_port'] == '" + percent_dst_ports.keys()[0] + "')"
+                attack_vector_filter_string +="&(df_saved['dst_port'] == " + str(percent_dst_ports.keys()[0]) + ")"
                 filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                 filter_p2 = "false"
                 print('********************************************************************************************')
@@ -396,7 +396,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
                     filter_p2 = "true"
                     value_src_dis = percent_src_ports.values[0]
-                    attack_vector_filter_string +="&(df_saved['src_port'] == '" + percent_src_ports.keys()[0] + "')"
+                    attack_vector_filter_string +="&(df_saved['src_port'] == " + str(percent_src_ports.keys()[0]) + ")"
                     #filter = "dst"
                     print('OUTPUT 3.4: SOURCE port',percent_src_ports.keys()[0], 'is considered as part of the attack vector.' )
                 else:
