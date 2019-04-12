@@ -42,14 +42,15 @@ def analyze_pcap_dataframe(df, dst_ip):
     counter = 1
 
     
-
+    print('STEP 3.1: Discovering Top 1 Destination IP... ')
     if dst_ip:
-        print("INPUT VICTIM DESTINATION IPS:", dst_ip,"\n", sep="\n")
         top1_dst_ip = dst_ip
+        print("OUTPUT 3.1:", top1_dst_ip)
     else:
         dst_ip_distribution = df['_ws.col.Destination'].value_counts().head()
-        print("\nDISTRIBUTION OF TOP DESTINATION IPS:", dst_ip_distribution,"\n", sep="\n")
+        print("\nDISTRIBUTION OF TOP DESTINATION IPS: \n", dst_ip_distribution)
         top1_dst_ip = dst_ip_distribution.keys()[0]
+        print("OUTPUT 3.1:", top1_dst_ip)
 
     df_remaining = df[df['_ws.col.Destination'] == top1_dst_ip]
 
@@ -289,7 +290,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         top1_dst_ip = dst_ip
     else:
         dst_ip_distribution = df_plus.groupby(by=['dst_ip'])['i_packets'].sum().sort_values(ascending=False).head()
-        print("\nDISTRIBUTION OF TOP DESTINATION IPS:", dst_ip_distribution,"\n", sep="\n")
+        print("\nDISTRIBUTION OF TOP DESTINATION IPS:", dst_ip_distribution)
         top1_dst_ip = dst_ip_distribution.keys()[0]
         print("\nOUTPUT 3.1:", top1_dst_ip)
     print('********************************************************************************************')
