@@ -319,7 +319,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         
         vector_filter_string = ""
 
-        df_filtered = df_filtered[df_filtered['ip_protocol'] == top_ip_proto]
+        df_filtered = df_filtered[df_filtered['ip_protocol'] == top1_protocol]
         
         ##for pcap is ipv4 here
 
@@ -331,11 +331,11 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #attack_vector["total_nr_packets"] = total_packets_filtered
 
         # For attacks in the IP protocol level
-        attack_label = top_ip_proto + "-based attack"
-        #attack_vector["transport_protocol"] = top_ip_proto
+        attack_label = top1_protocol + "-based attack"
+        #attack_vector["transport_protocol"] = top1_protocol
 
         # For attacks based on TCP or UDP, which have source and destination ports
-        #if (top_ip_proto == 'TCP') or (top_ip_proto == 'UDP'):
+        #if (top1_protocol == 'TCP') or (top1_protocol == 'UDP'):
 
             # Calculate the distribution of source ports based on the first filter
         percent_src_ports = df_filtered.groupby(by=['src_port'])['i_packets'].sum().sort_values(
@@ -375,7 +375,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 print("\nFilter top port", filter_top_p)
 
                 #filter = "src"
-                if (top_ip_proto != 'ICMP') and (percent_dst_ports.values[0] > threshold_own):
+                if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_own):
                     filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
                     print("DST-Port over 50%, it is an own attack")
@@ -393,7 +393,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_dst_port) + ')'
                 print("\nFilter top port", filter_top_p)
-                if (top_ip_proto != 'ICMP') and (percent_src_ports.values[0] > threshold_own):
+                if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_own):
                     filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
                     print("Src-Port over 50%, it is an own attack")
@@ -409,7 +409,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             #return None
 
 
-        if (top_ip_proto == 'ICMP'): 
+        if (top1_protocol == 'ICMP'): 
             icmp_type_dis = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(ascending=False)
             if debug: print('\nDISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
             if (percent_dst_ports.keys()[0] > 767) and (percent_dst_ports.keys()[0] < 784):
@@ -440,11 +440,11 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
             vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(icmp_port) + ')'
 
-        if (top_ip_proto == 'UDP'): #(top_ip_proto == 'TCP') or :
+        if (top1_protocol == 'UDP'): #(top1_protocol == 'TCP') or :
             vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')'
             pattern_packets = df_pattern['i_packets'].sum()
 
-        if (top_ip_proto == 'TCP'):
+        if (top1_protocol == 'TCP'):
             # Check the existence of TCP flags
             tcp_flags_dis = df_pattern.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
                 ascending=False) #.divide(float(pattern_packets) / 100)
@@ -510,7 +510,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         attack_vector['key'] = str(hashlib.md5(str(start_epoch).encode()).hexdigest())
 
 
-        #if (top_ip_proto == 'TCP') or (top_ip_proto == 'UDP'):
+        #if (top1_protocol == 'TCP') or (top1_protocol == 'UDP'):
             # Calculating the distribution of source ports that remains
         percent_src_ports = df_pattern.groupby(by=['src_port'])['i_packets'].sum().sort_values(ascending=False).divide(float(pattern_packets) / 100)
         attack_vector["src_ports"] = percent_src_ports.to_dict()
@@ -531,7 +531,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             if len(percent_dst_ports) == 1 or value_dest_dis > threshold_own:
                 if debug: print("\nCASE 1: 1 source port to 1 destination port")
                 #print(filter)
-                if (top_ip_proto != 'ICMP') and (filter_p2 == "true"):
+                if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
                     vector_filter_string += '&(' + str(filter_top2_p) + ')'
                     #ips_involved = df_filtered['src_ip'].unique()
                     print(" new filter: ", vector_filter_string)
@@ -579,7 +579,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
                 #filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                 #attack_vector["2. selected_port"] = "src" + str(percent_src_ports.keys()[0])
-                if (top_ip_proto != 'ICMP') and (filter_p2 == "true"):
+                if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
                     vector_filter_string += '&(' + str(filter_top2_p) + ')'
                     print(" new filter: ", vector_filter_string)
                     #ips_involved = df_filtered['src_ip'].unique()
@@ -637,7 +637,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #    attack_label = attack_label + "; " + http_data.index[0]
 
             # Testing TCP flags
-        if (top_ip_proto == 'TCP') and (len(percent_tcp_flags) > 0) and (percent_tcp_flags.values[0] > 50):
+        if (top1_protocol == 'TCP') and (len(percent_tcp_flags) > 0) and (percent_tcp_flags.values[0] > 50):
             attack_label = attack_label + "; TCP flags: " + tcpflagletters2names(
             percent_tcp_flags.index[0]) + "[" + '%.1f' % percent_tcp_flags.values[0] + "%]"
 
@@ -650,7 +650,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         print(
                 "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top1_dst_ip + "\n" +
                 "   - Involved " + str(len(ips_involved)) + " source IP addresses\n" +
-                "   - Using IP protocol " + protocolnumber2name(top_ip_proto) + "\n" +
+                "   - Using IP protocol " + protocolnumber2name(top1_protocol) + "\n" +
                 "   - " + port_label + "\n" +
                 #"   - " + fragment_label +
                 "   - " + reflection_label + "\n" +
@@ -663,7 +663,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             if debug:
                 print("STOP ANALYSIS; LOOKS LIKE A LOOP; RE-CHECK THE DISSECTOR SOURCE CODE!!")
             break
-        if (top_ip_proto == 'ICMP'): 
+        if (top1_protocol == 'ICMP'): 
             if (attack_vector['additional'] == 'icmp_type: 3'):
                 df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|').replace('<','>'))]
             elif (attack_vector['additional'] == 'icmp_type: 11' ):
