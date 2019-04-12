@@ -410,7 +410,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             print("STEP 3.5: Analysing the Protocol for idenfying extra information")
 
             if (top1_protocol == 'UDP'):
-                print("\nOUTPUT 3.5: There is NO extra information about UDP port",percent_src_ports.keys()[0], "in the network flow")
+                print("\nOUTPUT 3.5: There is NO extra information about UDP port",percent_src_ports.keys()[0], "in the network flow.")
                 pattern_packets = df_remaining['i_packets'].sum()
                 print('********************************************************************************************')
                 
@@ -433,7 +433,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         else:
             print("STEP 3.5: Analysing the Protocol for idenfying extra information")
             icmp_type_dis = df_remaining.groupby(by=['dst_port'])['i_packets'].sum().sort_values(ascending=False)
-            print('\nDISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
+            print('DISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
+            print(percent_dst_ports.keys()[0], type(percent_dst_ports.keys()[0]))
             
             if (percent_dst_ports.keys()[0] > 767) and (percent_dst_ports.keys()[0] < 784):
                 attack_vector['additional'] = 'icmp_type: 3'
@@ -442,7 +443,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #icmp_port = "df_saved['dst_port'] < 784"
                 df_remaining = df_remaining[df_remaining['dst_port'] < 784]
                 pattern_packets = df_remaining['i_packets'].sum()
-                print("OUTPUT 3.5: ICMP type 3 is part of the attack")
+                print("\nOUTPUT 3.5: ICMP type 3 is part of the attack")
 
             elif (percent_dst_ports.keys()[0] == 2816) or (percent_dst_ports.keys()[0] == 2817):
                 attack_vector['additional'] = 'icmp_type: 11' 
@@ -451,7 +452,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #icmp_port = "df_saved['dst_port'] > 2815"
                 df_remaining = df_remaining[df_remaining['dst_port'] > 2815]
                 pattern_packets = df_remaining['i_packets'].sum()
-                print("OUTPUT 3.5: ICMP type 11 is part of the attack")
+                print("\nOUTPUT 3.5: ICMP type 11 is part of the attack")
 
             elif (percent_dst_ports.keys()[0] == 1281):
                 attack_vector['additional'] = 'icmp_type: 5' 
@@ -459,14 +460,14 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #icmp_port = "df_saved['dst_port'] == 1281"
                 df_remaining = df_remaining[df_remaining['dst_port'] == 1281]
                 pattern_packets = df_remaining['i_packets'].sum()
-                print("OUTPUT 3.5: ICMP type 5 is part of the attack")
+                print("\nOUTPUT 3.5: ICMP type 5 is part of the attack")
 
             else:
                 icmp_port = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                 #attack_vector['additional'] = 'icmp_type: not specified' 
                 df_remaining = df_remaining[df_remaining['dst_port'] == percent_dst_ports.keys()[0]]
                 pattern_packets = df_remaining['i_packets'].sum()
-                print("OUTPUT 3.5: ICMP of another type is part of the attack")
+                print("\nOUTPUT 3.5: ICMP of another type is part of the attack")
 
 
 
