@@ -58,7 +58,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         
         # Analyse the distribution of IP protocols (and defining the top1)
         protocol_distribution = df_remaining['_ws.col.Protocol'].value_counts().head()
-        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution,"\n",sep="\n")
+        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution)
         
         top1_protocol = protocol_distribution.keys()[0]
         filter_top_protocol_string = "df_remaining['_ws.col.Protocol']=='" + str(top1_protocol) + "'"
@@ -69,7 +69,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         # Define if the remaining is based on the top1 source OR destination port
         if top1_protocol == 'IPv4':
             fragmentation_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'IPv4']['fragmentation'].value_counts()
-            print("DISTRIBUTION OF FRAGMENTATION:", fragmentation_distribution,"\n",sep="\n")
+            print("DISTRIBUTION OF FRAGMENTATION:", fragmentation_distribution)
 
             if fragmentation_distribution.keys()[0]:
                 filter_fragmentation_string = "df_remaining['fragmentation']==True"
@@ -80,12 +80,12 @@ def analyze_pcap_dataframe(df, dst_ip):
         else:
             # Analyse the distribution of SOURCE ports AND define the top1
             port_source_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == top1_protocol]['srcport'].value_counts().head()
-            print("DISTRIBUTION OF TOP SOURCE PORT:", port_source_distribution,"\n",sep="\n")
+            print("DISTRIBUTION OF TOP SOURCE PORT:", port_source_distribution)
             top1_source_port = math.floor(port_source_distribution.keys()[0])
 
             # Analyse the distribution of DESTINATION ports AND define the top1
             port_destination_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == top1_protocol]['dstport'].value_counts().head()
-            print("DISTRIBUTION OF TOP DESTINATION PORTS:",port_destination_distribution,"\n",sep="\n")
+            print("DISTRIBUTION OF TOP DESTINATION PORTS:",port_destination_distribution)
             top1_destination_port = math.floor(port_destination_distribution.keys()[0])
 
             # Check which port type (source or destination) AND number had most occurrences
@@ -101,7 +101,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             if top1_protocol == 'ICMP':
                 
                 icmp_type_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'ICMP']['icmp.type'].value_counts()
-                print("DISTRIBUTION OF TOP ICMP TYPES:", icmp_type_distribution,"\n",sep="\n")
+                print("DISTRIBUTION OF TOP ICMP TYPES:", icmp_type_distribution)
 
                 top1_icmp_type = icmp_type_distribution.keys()[0]
                 filter_icmp_type = "df_remaining['icmp.type']=='" + str(top1_icmp_type)+"'"
@@ -121,7 +121,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             #Analysis for TCP
             if top1_protocol == 'TCP':
                 tcp_flag_distribution =  df_remaining[df_remaining['_ws.col.Protocol'] == 'TCP']['tcp.flags.str'].value_counts().head()
-                print("DISTRIBUTION OF TOP TCP FLAGS:",tcp_flag_distribution,"\n",sep="\n")
+                print("DISTRIBUTION OF TOP TCP FLAGS:",tcp_flag_distribution)
                 top1_tcp_flag = tcp_flag_distribution.keys()[0]
                 
                 filter_tcp_flag = "df_remaining['tcp.flags.str']=='" + str(top1_tcp_flag) + "'"
@@ -132,14 +132,14 @@ def analyze_pcap_dataframe(df, dst_ip):
             #Analysis for DNS
             if top1_protocol == 'DNS':
                 dns_query_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'DNS']['dns.qry.name'].value_counts().head()
-                print("DISTRIBUTION OF TOP DNS QUERIES:",dns_query_distribution,"\n",sep="\n")
+                print("DISTRIBUTION OF TOP DNS QUERIES:",dns_query_distribution)
                 top1_dns_query = dns_query_distribution.keys()[0]
 
                 filter_dns_query = "df_remaining['dns.qry.name']=='" + str(top1_dns_query) + "'"
                 attack_vector_filter_string += '&(' + str(filter_dns_query) + ')'
 
                 dns_type_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'DNS']['dns.qry.type'].value_counts().head()
-                print("DISTRIBUTION OF TOP DNS TYPES:",dns_type_distribution,"\n",sep="\n")
+                print("DISTRIBUTION OF TOP DNS TYPES:",dns_type_distribution)
                 top1_dns_type = dns_type_distribution.keys()[0]
                 
                 attack_vector['additional'] = {
@@ -150,7 +150,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             #Analysis for NTP
             if top1_protocol == "NTP":
                 ntp_mode_distribution = df_remaining[df_remaining['_ws.col.Protocol'] == 'NTP']['ntp.priv.reqcode'].value_counts().head()
-                print("DISTRIBUTION OF TOP NTP RESPONSE:",ntp_mode_distribution,"\n",sep="\n")
+                print("DISTRIBUTION OF TOP NTP RESPONSE:",ntp_mode_distribution)
                 top1_ntp_response = math.floor(ntp_mode_distribution.keys()[0])
 
                 filter_ntp_response = "df_remaining['ntp.priv.reqcode']==" + str(top1_ntp_response) 
@@ -260,7 +260,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             intersection = len(np.intersect1d(attack_vector_source_ips[m], attack_vector_source_ips[n]))
             matrix_source_ip_intersection.loc[str(m + 1), str(n + 1)] = intersection
         matrix_source_ip_intersection.loc[str(m + 1), 'Attack vector'] = str(attack_vector_labels[m])
-    print("INTERSECTION OF SOURCE IPS IN ATTACK VECTORS:",matrix_source_ip_intersection,"\n",sep="\n")
+    print("INTERSECTION OF SOURCE IPS IN ATTACK VECTORS:",matrix_source_ip_intersection)
 
     return top1_dst_ip, fingerprints
 
@@ -308,7 +308,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #STEP 2: Discovering Top 1 IP Protocol
         print('STEP 3.2: Discovering Top 1 IP Protocol...')
         protocol_distribution = df_filtered.groupby(by=['ip_protocol'])['i_packets'].sum().sort_values(ascending=False).head()
-        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution,"\n",sep="\n")
+        print("DISTRIBUTION OF TOP IP PROTOCOLS: \n",protocol_distribution)
         top1_protocol = protocol_distribution.keys()[0]
         print('OUTPUT 3.2:', top1_protocol)
         print('********************************************************************************************')
