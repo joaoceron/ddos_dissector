@@ -153,7 +153,7 @@ def convert_nfdump_to_dataframe(input_file):
                'dst_ip',  # da,
                'src_port',  # sp,
                'dst_port',  # dp,
-               'ip_proto',  # pr,
+               'ip_protocol',  # pr,
                'tcp_flag',  # flg,
                'forwarding',  # fwd,
                'src_tos',  # stos,
