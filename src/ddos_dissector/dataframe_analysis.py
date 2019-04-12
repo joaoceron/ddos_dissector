@@ -294,7 +294,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         print("\nOUTPUT 3.1:", top1_dst_ip)
     print('********************************************************************************************')
 
-    df_filtered = df_plus[df_plus['dst_ip'] == top_dst_ip]
+    df_filtered = df_plus[df_plus['dst_ip'] == top1_dst_ip]
 
     ## a variable is needed to save the data, as df_filtered will be changed in the while-loop to make the code clearer
     df_saved = df_filtered
@@ -648,7 +648,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         fingerprint["vector"] = str(vector_filter_string).replace("df_saved", "")
 
         print(
-                "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top_dst_ip + "\n" +
+                "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top1_dst_ip + "\n" +
                 "   - Involved " + str(len(ips_involved)) + " source IP addresses\n" +
                 "   - Using IP protocol " + protocolnumber2name(top_ip_proto) + "\n" +
                 "   - " + port_label + "\n" +
@@ -693,4 +693,4 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         x['multivector_key']= all_patterns[0]['key']
 
    
-    return top_dst_ip, all_patterns
+    return top1_dst_ip, all_patterns

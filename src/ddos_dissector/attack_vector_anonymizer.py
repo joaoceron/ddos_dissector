@@ -33,7 +33,7 @@ def anonymize_pcap(input_file, victim_ip, fingerprint, file_type):
     
     filter_out = "\"ip.dst == " + victim_ip
 
-    if str(fingerprint['protocol']).lower() == 'ipv4':
+    if str(fingerprint['ip_protocol']).lower() == 'ipv4':
         filter_out += " and ip.frag_offset gt 0" #removed ip.flags.mf == 1 
 
     else:
@@ -46,32 +46,32 @@ def anonymize_pcap(input_file, victim_ip, fingerprint, file_type):
         else:
             pass
 
-        filter_out += " and "+str(fingerprint['protocol']).lower()
+        filter_out += " and "+str(fingerprint['ip_protocol']).lower()
 
-        if str(fingerprint['protocol']).lower() == 'icmp':
+        if str(fingerprint['ip_protocol']).lower() == 'icmp':
             filter_out += " and icmp.type== "+str(fingerprint['additional']['icmp_type']).split('.')[0]
 
-        # if str(fingerprint['protocol']).lower() == 'udp':
+        # if str(fingerprint['ip_protocol']).lower() == 'udp':
             
-        if str(fingerprint['protocol']).lower() == 'dns':
+        if str(fingerprint['ip_protocol']).lower() == 'dns':
             filter_out += " and dns.qry.name contains " + str(fingerprint['additional']['dns_query'])
             filter_out += " and dns.qry.type == " + str(fingerprint['additional']['dns_type']).split('.')[0]
             
-        # if str(fingerprint['protocol']).lower() == 'http': 
+        # if str(fingerprint['ip_protocol']).lower() == 'http': 
             
-        # if str(fingerprint['protocol']).lower() == 'quic':
+        # if str(fingerprint['ip_protocol']).lower() == 'quic':
 
-        # if str(fingerprint['protocol']).lower() == 'udp':
+        # if str(fingerprint['ip_protocol']).lower() == 'udp':
 
-        if str(fingerprint['protocol']).lower() == 'ntp':
+        if str(fingerprint['ip_protocol']).lower() == 'ntp':
             filter_out += " and ntp.priv.reqcode ==  " + str(fingerprint['additional']['ntp_reqcode'])
 
-        # if str(fingerprint['protocol']).lower() == 'chargen:
+        # if str(fingerprint['ip_protocol']).lower() == 'chargen:
 
-        # if str(fingerprint['protocol']).lower() == 'ssdp':
+        # if str(fingerprint['ip_protocol']).lower() == 'ssdp':
             # to be filled-in later
 
-        if str(fingerprint['protocol']).lower() != 'icmp':
+        if str(fingerprint['ip_protocol']).lower() != 'icmp':
             filter_out += " and not icmp"
     
     filter_out += "\""
