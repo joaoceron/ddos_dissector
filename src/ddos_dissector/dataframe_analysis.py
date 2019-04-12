@@ -391,7 +391,6 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
-                    print("DST-Port over 50%, it is an own attack")
                     filter_p2 = "true"
                     value_dest_dis = percent_dst_ports.values[0]
                     #filter = "src"
@@ -414,7 +413,6 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
-                    print("Src-Port over 50%, it is an own attack")
                     filter_p2 = "true"
                     value_src_dis = percent_src_ports.values[0]
                     #filter = "dst"
