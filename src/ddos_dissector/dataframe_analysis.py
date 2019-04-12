@@ -322,7 +322,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         top1_protocol = protocol_distribution.keys()[0]
         attack_vector['ip_protocol'] = top1_protocol
         print('\nOUTPUT 3.2:', top1_protocol)
-        print('********************************************************************************************')
+        
 
        #adding the findings to the attack_vector_filter 
         attack_vector_filter_string = ""
@@ -334,79 +334,104 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         # Calculating the number of packets after the first filter
         total_packets_filtered = df_remaining['i_packets'].sum()
 
-        # Calculate the distribution of source ports based on the first filter
-        print('STEP 3.3: Discovering Top 1 Port')
-        percent_src_ports = df_remaining.groupby(by=['src_port'])['i_packets'].sum().sort_values(
-            ascending=False).divide(float(total_packets_filtered) )
-        print("\nDISTRIBUTION OF SOURCE PORT:",percent_src_ports.head()) 
-
-            # Calculate the distribution of destination ports after the first filter
-        percent_dst_ports = df_remaining.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
-            ascending=False).divide(float(total_packets_filtered) )
-
-        print("\nDISTRIBUTION OF DESTINATION PORTS:", percent_dst_ports.head())
-
-        #reset value for recognizing an own attack
-        value_src_dis = 0
-        value_dest_dis = 0
-
-        
-        if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
-            if percent_src_ports.values[0] > percent_dst_ports.values[0]:
-                print("\nOUTPUT 3.3: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
-                df_remaining = df_remaining[df_remaining['src_port'] == percent_src_ports.keys()[0]]
-                attack_vector_filter_string +="&(df_saved['src_port'] == " + str(percent_src_ports.keys()[0]) + ")"
-                #filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
-                filter_p2 = "false"
-
-                print('********************************************************************************************')
-                print('STEP 3.4: Analysing top 1 DESTINATION port frequency and THRESHOLD')
-                print('THRESHOLD =', threshold_1to1)
-                #attack_vector["selected_port"] = "src" + str(percent_src_ports.keys()[0])
-                #attack_vector_filter_string += '&(' + str(filter_src_port) + ')'
-
-                #filter = "src"
-                
-                if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_1to1):
-                    filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
-                    df_remaining = df_remaining[df_remaining['dst_port'] == percent_dst_ports.keys()[0]]
-                    filter_p2 = "true"
-                    value_dest_dis = percent_dst_ports.values[0]
-                    attack_vector_filter_string +="&(df_saved['dst_port'] == " + str(percent_dst_ports.keys()[0]) + ")"
-                    #filter = "src"
-                    print('\nOUTPUT 3.4: DESTINATION port',percent_dst_ports.keys()[0], 'is considered as part of the attack vector.' )
-                else:
-                    print('\nOUTPUT 3.4: DESTINATION port',percent_dst_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
-
-
-            else:
-                    
-                df_remaining = df_remaining[df_remaining['dst_port'] == percent_dst_ports.keys()[0]]
-                attack_vector_filter_string +="&(df_saved['dst_port'] == " + str(percent_dst_ports.keys()[0]) + ")"
-                filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
-                filter_p2 = "false"
-                print('********************************************************************************************')
-                print('STEP 3.4: Analysing top 1 SOURCE port frequency and THRESHOLD')
-                print('THRESHOLD =', threshold_1to1)
-                #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
-                #attack_vector_filter_string += '&(' + str(filter_dst_port) + ')'
-
-                if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_1to1):
-                    filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
-                    df_remaining = df_remaining[df_remaining['src_port'] == percent_src_ports.keys()[0]]
-                    filter_p2 = "true"
-                    value_src_dis = percent_src_ports.values[0]
-                    attack_vector_filter_string +="&(df_saved['src_port'] == " + str(percent_src_ports.keys()[0]) + ")"
-                    #filter = "dst"
-                    print('OUTPUT 3.4: SOURCE port',percent_src_ports.keys()[0], 'is considered as part of the attack vector.' )
-                else:
-                    print('OUTPUT 3.4: SOURCE port',percent_src_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
-                    
         print('********************************************************************************************')
 
-        print("STEP 3.5: Analysing the Protocol for idenfying extra information")
+        if (top1_protocol != 'ICMP'):
+        # Calculate the distribution of source ports based on the first filter
 
-        if (top1_protocol == 'ICMP'): 
+            print('STEP 3.3: Discovering Top 1 Port')
+            percent_src_ports = df_remaining.groupby(by=['src_port'])['i_packets'].sum().sort_values(
+                ascending=False).divide(float(total_packets_filtered) )
+            print("\nDISTRIBUTION OF SOURCE PORT:",percent_src_ports.head()) 
+
+                # Calculate the distribution of destination ports after the first filter
+            percent_dst_ports = df_remaining.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
+                ascending=False).divide(float(total_packets_filtered) )
+
+            print("\nDISTRIBUTION OF DESTINATION PORTS:", percent_dst_ports.head())
+
+            #reset value for recognizing an own attack
+            value_src_dis = 0
+            value_dest_dis = 0
+
+            
+            if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
+                if percent_src_ports.values[0] > percent_dst_ports.values[0]:
+                    print("\nOUTPUT 3.3: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
+                    df_remaining = df_remaining[df_remaining['src_port'] == percent_src_ports.keys()[0]]
+                    attack_vector_filter_string +="&(df_saved['src_port'] == " + str(percent_src_ports.keys()[0]) + ")"
+                    #filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
+                    filter_p2 = "false"
+
+                    print('********************************************************************************************')
+                    print('STEP 3.4: Analysing top 1 DESTINATION port frequency and THRESHOLD')
+                    print('THRESHOLD =', threshold_1to1)
+                    #attack_vector["selected_port"] = "src" + str(percent_src_ports.keys()[0])
+                    #attack_vector_filter_string += '&(' + str(filter_src_port) + ')'
+
+                    #filter = "src"
+                    
+                    if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_1to1):
+                        filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
+                        df_remaining = df_remaining[df_remaining['dst_port'] == percent_dst_ports.keys()[0]]
+                        filter_p2 = "true"
+                        value_dest_dis = percent_dst_ports.values[0]
+                        attack_vector_filter_string +="&(df_saved['dst_port'] == " + str(percent_dst_ports.keys()[0]) + ")"
+                        #filter = "src"
+                        print('\nOUTPUT 3.4: DESTINATION port',percent_dst_ports.keys()[0], 'is considered as part of the attack vector.' )
+                    else:
+                        print('\nOUTPUT 3.4: DESTINATION port',percent_dst_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
+
+
+                else:
+                        
+                    df_remaining = df_remaining[df_remaining['dst_port'] == percent_dst_ports.keys()[0]]
+                    attack_vector_filter_string +="&(df_saved['dst_port'] == " + str(percent_dst_ports.keys()[0]) + ")"
+                    filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
+                    filter_p2 = "false"
+                    print('********************************************************************************************')
+                    print('STEP 3.4: Analysing top 1 SOURCE port frequency and THRESHOLD')
+                    print('THRESHOLD =', threshold_1to1)
+                    #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
+                    #attack_vector_filter_string += '&(' + str(filter_dst_port) + ')'
+
+                    if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_1to1):
+                        filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
+                        df_remaining = df_remaining[df_remaining['src_port'] == percent_src_ports.keys()[0]]
+                        filter_p2 = "true"
+                        value_src_dis = percent_src_ports.values[0]
+                        attack_vector_filter_string +="&(df_saved['src_port'] == " + str(percent_src_ports.keys()[0]) + ")"
+                        #filter = "dst"
+                        print('OUTPUT 3.4: SOURCE port',percent_src_ports.keys()[0], 'is considered as part of the attack vector.' )
+                    else:
+                        print('OUTPUT 3.4: SOURCE port',percent_src_ports.keys()[0], 'is NOT considered as part of the attack vector.' )
+                        
+            print('********************************************************************************************')
+            print("STEP 3.5: Analysing the Protocol for idenfying extra information")
+
+            if (top1_protocol == 'UDP'):
+                print("\nOUTPUT 3.5: There is NO extra information about UDP port",percent_src_ports.keys()[0], "in the network flow")
+                pattern_packets = df_remaining['i_packets'].sum()
+                print('********************************************************************************************')
+                
+            if (top1_protocol == 'TCP'):
+                # Check the existence of TCP flags
+                tcp_flags_dis = df_remaining.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
+                    ascending=False) #.divide(float(pattern_packets) )
+                if debug:
+                    print("Distribution of TCP flags", tcp_flags_dis)
+                top_tcp_flags = tcp_flags_dis.keys()[0]
+                filter_tcp_flag = "df_saved['tcp_flag'] == '" + top_tcp_flags + "'"
+                #attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
+                df_remaining = df_remaining[df_remaining['tcp_flag'] == tcp_flags_dis.keys()[0]]
+                pattern_packets = df_remaining['i_packets'].sum()
+                percent_tcp_flags = df_remaining.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
+                    ascending=False).divide(float(pattern_packets) )
+                print('********************************************************************************************')
+
+
+        else:
+            print("STEP 3.5: Analysing the Protocol for idenfying extra information")
             icmp_type_dis = df_remaining.groupby(by=['dst_port'])['i_packets'].sum().sort_values(ascending=False)
             print('\nDISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
             
@@ -442,33 +467,6 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 df_remaining = df_remaining[df_remaining['dst_port'] == percent_dst_ports.keys()[0]]
                 pattern_packets = df_remaining['i_packets'].sum()
                 print("OUTPUT 3.5: ICMP of another type is part of the attack")
-
-
-            #attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(icmp_port) + ')'
-
-
-
-        if (top1_protocol == 'UDP'):
-            print("OUTPUT 3.5: There is no extra information about UDP port",percent_src_ports.keys()[0], "in the network flow")
-            pattern_packets = df_remaining['i_packets'].sum()
-
-
-
-
-        if (top1_protocol == 'TCP'):
-            # Check the existence of TCP flags
-            tcp_flags_dis = df_remaining.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
-                ascending=False) #.divide(float(pattern_packets) )
-            if debug:
-                print("Distribution of TCP flags", tcp_flags_dis)
-            top_tcp_flags = tcp_flags_dis.keys()[0]
-            filter_tcp_flag = "df_saved['tcp_flag'] == '" + top_tcp_flags + "'"
-            #attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
-            df_remaining = df_remaining[df_remaining['tcp_flag'] == tcp_flags_dis.keys()[0]]
-            pattern_packets = df_remaining['i_packets'].sum()
-            percent_tcp_flags = df_remaining.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
-                ascending=False).divide(float(pattern_packets) )
-
 
 
 
