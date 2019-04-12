@@ -449,7 +449,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
 
         if (top1_protocol == 'UDP'):
-           # attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')'
+            print("OUTPUT 3.5: There is no extra information about UDP port",percent_src_ports.keys()[0], "in the network flow")
             pattern_packets = df_remaining['i_packets'].sum()
 
 
