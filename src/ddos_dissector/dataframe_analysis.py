@@ -648,7 +648,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             # Testing TCP flags
         if (top1_protocol == 'TCP') and (len(percent_tcp_flags) > 0) and (percent_tcp_flags.values[0] > 50):
             #attack_label = attack_label + "; TCP flags: " + tcpflagletters2names(
-            percent_tcp_flags.index[0]) + "[" + '%.1f' % percent_tcp_flags.values[0] + "%]"
+            #percent_tcp_flags.index[0]) + "[" + '%.1f' % percent_tcp_flags.values[0] + "%]"
 
             # Must discuss if it actually stands for nfdump files
         if percent_src_ports.values[0] >= 1:
