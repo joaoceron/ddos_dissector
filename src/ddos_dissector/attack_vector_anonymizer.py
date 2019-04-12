@@ -142,34 +142,73 @@ def anonymize_pcap(input_file, victim_ip, fingerprint, file_type):
 
 def anonymize_nfdump(input_file, victim_ip, fingerprint, file_type):
     # Filtering based on host/proto and ports
-
-    if len(fingerprint['src_ports']) > 1:
-        filter_out = "dst ip " + victim_ip + " and proto " + str(fingerprint['ip_protocol']) + " and dst port " + \
-                     str(list(fingerprint["dst_ports"].keys())[0])
-    else:
-        filter_out = "dst ip " + victim_ip + " and proto " + str(fingerprint['ip_protocol']) + " and src port " + \
+    if fingerprint['ip_protocol'] == 'UDP' or fingerprint['ip_protocol'] == 'TCP':
+        if len(fingerprint['src_ports']) > 1:
+            filter_out = "dst ip " + victim_ip + " and proto " + str(fingerprint['ip_protocol']) + " and dst port " + \
+                    str(list(fingerprint["dst_ports"].keys())[0])
+        else:
+            filter_out = "dst ip " + victim_ip + " and proto " + str(fingerprint['ip_protocol']) + " and src port " + \
                      str(list(fingerprint["src_ports"].keys())[0])
+    elif fingerprint['ip_protocol'] == 'ICMP':
+        filter_out = "dst ip " + victim_ip + " and proto " + str(fingerprint['ip_protocol'])
 
     # proper filename based on start timestamp and selected port
-    timestamp = fingerprint["start_timestamp"].split()
-    filename = timestamp[0].replace("-", "") + timestamp[1].replace(":", "") + \
-        "_" + str(fingerprint["selected_port"]) + ".nfdump"
+    timestamp = fingerprint["start_times"].split()
+    filename = fingerprint["key"] + "." + str(file_type)
+    #filename = timestamp[0].replace("-", "") + fingerprint['ip_protocol'] + timestamp[1].replace(":", "") + \
+      #  "_" + str(fingerprint["selected_port"]) + ".nfdump"
+
+    # Filter fingerprint Int64
+    def filter_fingerprint(items):
+        if type(items) is dict:
+            for key, value in items.items():
+                if type(value) is np.int64:
+                    items[key] = int(value)
+                elif type(value) is dict or type(value) is list:
+                    items[key] = filter_fingerprint(value)
+        elif type(items) is list:
+            for i in range(len(items)):
+                value = items[i]
+                if type(value) is np.int64:
+                    items[i] = int(value)
+                elif type(value) is dict or type(value) is list:
+                    items[i] = filter_fingerprint(value)
+
+        return items
+
+    ##Generating the json file containing the fingerprint
+    with open(os.path.join(settings.OUTPUT_LOCATION, fingerprint["key"] + '.json'), 'w+') as outfile:
+        fingerprint = filter_fingerprint(fingerprint)
+        json.dump(fingerprint, outfile)
 
     temporary_file_fd, temporary_file_name = tempfile.mkstemp()
 
     # running nfdump with the filters created above
-    p = subprocess.Popen(["nfdump_modified/bin/nfdump -r " + input_file +
+    p = subprocess.Popen(["/Users/Jessica/nfdump_modified/bin/nfdump -r " + input_file +
                           " -w " + temporary_file_name + " " + "'" + filter_out + "'"],
                          shell=True,
                          stdout=subprocess.PIPE)
+
+    # p = subprocess.Popen(["nfdump_modified/bin/nfdump -r " + input_file +
+    #                       " -w " + temporary_file_name + " " + "'" + filter_out + "'"],
+    #                      shell=True,
+    #                      stdout=subprocess.PIPE)
+
     p.communicate()
     p.wait()
 
-    p = subprocess.Popen(["nfdump_modified/bin/nfanon -r " + temporary_file_name + " -w " +
+    p = subprocess.Popen(["/Users/Jessica/nfdump_modified/bin/nfanon -r " + temporary_file_name + " -w " +
                           os.path.join(settings.OUTPUT_LOCATION, filename)],
                          shell=True, stdout=subprocess.PIPE)
+    # p = subprocess.Popen(["nfdump_modified/bin/nfanon -r " + temporary_file_name + " -w " +
+    #                       os.path.join(settings.OUTPUT_LOCATION, filename)],
+    #                      shell=True, stdout=subprocess.PIPE)
+
+
+    print("writing nfdump file"+ fingerprint['ip_protocol'])
     p.communicate()
     p.wait()
+
 
     try:
         os.remove(temporary_file_name)
