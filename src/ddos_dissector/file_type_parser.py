@@ -56,7 +56,7 @@ def convert_pcap_to_dataframe(input_file):
     tshark_fields = "-e frame.time_epoch " \
                     "-e _ws.col.Source " \
                     "-e _ws.col.Destination " \
-                    "-e col.Protocol " \
+                    "-e ip.proto " \
                     "-e frame.len " \
                     "-e ip.ttl " \
                     "-e ip.flags.mf " \
@@ -126,6 +126,8 @@ def convert_pcap_to_dataframe(input_file):
 
     df['ip.ttl'] = df['ip.ttl']
     df['tcp.flags.str'] = df['tcp.flags.str'].str.decode("utf-8")
+
+    df['ip.proto'] = df['ip.proto'].str.split(',')[0]
 
     return df
 
