@@ -477,7 +477,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             # Calculate the percentage of the current pattern compared to the raw input file
         representativeness = float(pattern_packets) * 100 / float(num_considered_packets)
         attack_vector["pattern_traffic_share"] = representativeness
-        attack_label = 'In %.2f' % representativeness + "\n " + attack_label
+        #attack_label = 'In %.2f' % representativeness + "\n " + attack_label
 
 
 
@@ -491,7 +491,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         if debug:
             print("\nPATTERN (ATTACK VECTOR) LABEL: " + str(counter) +  attack_vector_filter_string.replace("df_saved", ""))
 
-        attack_label = attack_label + "\n" + str(len(ips_involved)) + " source IPs"
+        #attack_label = attack_label + "\n" + str(len(ips_involved)) + " source IPs"
         attack_vector["src_ips"] = ips_involved.tolist()
         attack_vector["total_src_ips"] = len(ips_involved)
 
@@ -647,7 +647,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
             # Testing TCP flags
         if (top1_protocol == 'TCP') and (len(percent_tcp_flags) > 0) and (percent_tcp_flags.values[0] > 50):
-            attack_label = attack_label + "; TCP flags: " + tcpflagletters2names(
+            #attack_label = attack_label + "; TCP flags: " + tcpflagletters2names(
             percent_tcp_flags.index[0]) + "[" + '%.1f' % percent_tcp_flags.values[0] + "%]"
 
             # Must discuss if it actually stands for nfdump files
