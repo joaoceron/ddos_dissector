@@ -140,7 +140,7 @@ def convert_nfdump_to_dataframe(input_file):
 
     # Convert nflow to csv
     p = subprocess.Popen(
-        ["nfdump_modified/bin/nfdump -r " + input_file + " -o extended -o csv > " + temporary_file_name],
+        ["ddos_dissector/nfdump_modified/bin/nfdump -r " + input_file + " -o extended -o csv > " + temporary_file_name],
         shell=True,
         stdout=subprocess.PIPE)
     p.communicate()

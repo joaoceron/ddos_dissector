@@ -4,8 +4,9 @@ import os
 
 def portnumber2name(port_number):
     port_path = "port_name.txt"
+
     if not os.path.isfile(port_path):
-        port_path = "functions/" + port_path
+        port_path = "ddos_dissector/" + port_path
     
     df_port_name = pd.read_csv(port_path, delimiter=",", names=['port_num', 'port_name'])
     try:

@@ -36,10 +36,10 @@ def check_requirements():
 def anonymize(_input_file, _file_type, _victim_ip, _fingerprint):
     return ddd.anonymize_attack_vector(_input_file, _file_type, _victim_ip, _fingerprint)
 
-def ddos_dissector(input_file, dst_ip, log):
+def ddos_dissector(input_file, dst_ip, verbose):
 
     # For storing the logs
-    if log == True:
+    if verbose == True:
         orig_stdout = sys.stdout
         f, f_name = tempfile.mkstemp()
         f = open(f_name, "w")
@@ -112,16 +112,16 @@ if __name__ == '__main__':
 
     parser.add_argument('--input', metavar='input_file', required=True, help='Path of a input file')
     parser.add_argument('--dst-ip', metavar='dst_ip', required=False, help='IP that was attacked')
-    parser.add_argument('--log', metavar='log', required=False, help='Show log at the stdout')
+    parser.add_argument('--verbose', metavar='verbose', required=False, help='Show log at the stdout')
 
     args = parser.parse_args()
     input_file = args.input
     dst_ip = args.dst_ip or False
-    log = args.log or True
+    verbose = args.verbose or True
 
     check_requirements()
 
     if os.path.isfile(input_file):
-        ddos_dissector(input_file, dst_ip, log)
+        ddos_dissector(input_file, dst_ip, verbose)
     else:
         print("We were unable to find the file. Please check the file path!")
