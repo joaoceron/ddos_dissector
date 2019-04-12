@@ -60,11 +60,11 @@ def analyze_pcap_dataframe(df, dst_ip):
         # Analyse the distribution of IP protocols (and defining the top1)
         #STEP 3.2
         print('STEP 3.2: Discovering Top 1 IP Protocol...')
-        
+
         protocol_distribution = df_remaining['ip.proto'].value_counts().head()
-        print("DISTRIBUTION OF TOP IP PROTOCOLS: \n",protocol_distribution)
+        print("\nDISTRIBUTION OF TOP IP PROTOCOLS: \n",protocol_distribution)
         top1_protocol = protocol_distribution.keys()[0]
-        print("\n OUTPUT 3.2:", top1_protocol)
+        print("\nOUTPUT 3.2:", top1_protocol)
         print('********************************************************************************************')
 
         filter_top_protocol_string = "df_remaining['ip.proto']=='" + str(top1_protocol) + "'"
@@ -85,14 +85,17 @@ def analyze_pcap_dataframe(df, dst_ip):
 
         else:
             # Analyse the distribution of SOURCE ports AND define the top1
+            print('STEP 3.3A: Discovering Top 1 Src Port ')
             port_source_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['srcport'].value_counts().head()
-            print("DISTRIBUTION OF TOP SOURCE PORT:", port_source_distribution)
+            print("\nDISTRIBUTION OF TOP SOURCE PORT:", port_source_distribution)
             top1_source_port = math.floor(port_source_distribution.keys()[0])
 
             # Analyse the distribution of DESTINATION ports AND define the top1
+            print('STEP 3.3B: Discovering Top 1 Dest Port')
             port_destination_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['dstport'].value_counts().head()
-            print("DISTRIBUTION OF TOP DESTINATION PORTS:",port_destination_distribution)
+            print("\nDISTRIBUTION OF TOP DESTINATION PORTS:",port_destination_distribution)
             top1_destination_port = math.floor(port_destination_distribution.keys()[0])
+            print('********************************************************************************************')
 
             # Check which port type (source or destination) AND number had most occurrences
             if port_source_distribution.iloc[0] > port_destination_distribution.iloc[0]:
@@ -314,7 +317,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #STEP 2: Discovering Top 1 IP Protocol
         print('STEP 3.2: Discovering Top 1 IP Protocol...')
         protocol_distribution = df_filtered.groupby(by=['ip_protocol'])['i_packets'].sum().sort_values(ascending=False).head()
-        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution)
+        print("\nDISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution)
         top1_protocol = protocol_distribution.keys()[0]
         print('\nOUTPUT 3.2:', top1_protocol)
         print('********************************************************************************************')
@@ -345,6 +348,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #if (top1_protocol == 'TCP') or (top1_protocol == 'UDP'):
 
             # Calculate the distribution of source ports based on the first filter
+        print('STEP 3.3A')
         percent_src_ports = df_filtered.groupby(by=['src_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(total_packets_filtered) / 100)
         if debug:
@@ -353,12 +357,15 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             ## does it need a top src port now?
 
             # Calculate the distribution of destination ports after the first filter
+        print('STEP 3.3B')
         percent_dst_ports = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(total_packets_filtered) / 100)
 
         if debug:
             print("\nDISTRIBUTION OF DESTINATION PORTS:")
             print(percent_dst_ports.head())
+
+        print('********************************************************************************************')
 
             # WARNING packets are filtered here again
             # Using the top 1 (source or destination) port to analyse a pattern of packets
