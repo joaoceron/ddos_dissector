@@ -48,7 +48,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         top1_dst_ip = dst_ip
     else:
         dst_ip_distribution = df['_ws.col.Destination'].value_counts().head()
-        print("DISTRIBUTION OF TOP DESTINATION IPS:", dst_ip_distribution,"\n", sep="\n")
+        print("\nDISTRIBUTION OF TOP DESTINATION IPS:", dst_ip_distribution,"\n", sep="\n")
         top1_dst_ip = dst_ip_distribution.keys()[0]
 
     df_remaining = df[df['_ws.col.Destination'] == top1_dst_ip]
@@ -57,11 +57,11 @@ def analyze_pcap_dataframe(df, dst_ip):
         
         # Analyse the distribution of IP protocols (and defining the top1)
         protocol_distribution = df_remaining['_ws.col.Protocol'].value_counts().head()
-        print("DISTRIBUTION OF TOP PROTOCOLS:",protocol_distribution,"\n",sep="\n")
+        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution,"\n",sep="\n")
         
         top1_protocol = protocol_distribution.keys()[0]
         filter_top_protocol_string = "df_remaining['_ws.col.Protocol']=='" + str(top1_protocol) + "'"
-        attack_vector['protocol'] = top1_protocol
+        attack_vector['ip_protocol'] = top1_protocol
 
         attack_vector_filter_string = ""
 
@@ -273,7 +273,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
     debug = True
     total_packets = df_plus["i_packets"].sum()
     all_patterns = []
-    result = {}
+    fingerprint = {}
+    fingerprint['file_type'] = 'netflow'
     counter = 1
     #attack_case = "-1"
     reflection_label = ""
@@ -281,44 +282,42 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
     fragment_label = ""
     threshold_own = 40
 
-
-
-    #Distribution of IP addresses
-    ip_dis = df_plus.groupby(by=['dst_ip'])['i_packets'].sum().sort_values(ascending=False)
-    if debug:
-        print("\nDISTRIBUTION OF DESTINATION IPS:")
-        print(ip_dis.head())
-
+    #STEP 1: Discovering Top 1 Destination IP
+    print('STEP 3.1: Discovering Top 1 Destination IP...')
     if dst_ip:
-        top_dst_ip = dst_ip
+        print("OUTPUT 3.1:", dst_ip)
+        top1_dst_ip = dst_ip
     else:
-        top_dst_ip = ip_dis.keys()[0]
-
-    print("\nATTACK ADDRESS:")
-    print(top_dst_ip)
+        dst_ip_distribution = df_plus.groupby(by=['dst_ip'])['i_packets'].sum().sort_values(ascending=False).head()
+        print("\nDISTRIBUTION OF TOP DESTINATION IPS:", dst_ip_distribution,"\n", sep="\n")
+        top1_dst_ip = dst_ip_distribution.keys()[0]
+        print("\nOUTPUT 3.1:", top1_dst_ip)
+    print('############################################################################################')
+    print('############################################################################################')
 
     df_filtered = df_plus[df_plus['dst_ip'] == top_dst_ip]
 
     ## a variable is needed to save the data, as df_filtered will be changed in the while-loop to make the code clearer
     df_saved = df_filtered
 
-    total_packets_to_target = df_filtered['i_packets'].sum()
-
-    #if debug:
-     #   print("Number of packets: " + str(total_packets_to_target))
+    num_considered_packets = df_filtered['i_packets'].sum()
 
     while len(df_filtered) > 1 :
-        result['file_type'] = 'Netflow'
 
         # Analyse the distribution of IP protocols (and defining the top1)
-        protocols_dis = df_filtered.groupby(by=['ip_proto'])['i_packets'].sum().sort_values(ascending=False)
-        if debug:
-            print("\nDISTRIBUTION OF PROTOCOLS:")
-            print(protocols_dis.head())
-        top_ip_proto = protocols_dis.keys()[0]
-        filter_protocol = "df_saved['ip_proto'] == '" + top_ip_proto + "'"
-        result['ip_protocol'] = top_ip_proto
-        #result['dst_ip'] = top_dst_ip
+        #STEP 2: Discovering Top 1 IP Protocol
+        print('STEP 3.2: Discovering Top 1 IP Protocol...')
+        protocol_distribution = df_filtered.groupby(by=['ip_proto'])['i_packets'].sum().sort_values(ascending=False).head()
+        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution,"\n",sep="\n")
+        top1_protocol = protocol_distribution.keys()[0]
+        print('OUTPUT 3.2:', top1_protocol)
+        print('############################################################################################')
+        print('############################################################################################')
+
+        filter_top_protocol_string = "df_saved['ip_proto'] == '" + str(top1_protocol) + "'"
+        attack_vector['ip_protocol'] = top1_protocol
+
+        attack_vector_filter_string = ""
         
         vector_filter_string = ""
 
@@ -331,11 +330,11 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         total_packets_filtered = df_filtered['i_packets'].sum()
         #if debug:
         #    print("Number of packets: " + str(total_packets_filtered))
-        #result["total_nr_packets"] = total_packets_filtered
+        #fingerprint["total_nr_packets"] = total_packets_filtered
 
         # For attacks in the IP protocol level
         attack_label = top_ip_proto + "-based attack"
-        #result["transport_protocol"] = top_ip_proto
+        #fingerprint["transport_protocol"] = top_ip_proto
 
         # For attacks based on TCP or UDP, which have source and destination ports
         #if (top_ip_proto == 'TCP') or (top_ip_proto == 'UDP'):
@@ -373,7 +372,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
                 filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                 filter_p2 = "false"
-                #result["selected_port"] = "src" + str(percent_src_ports.keys()[0])
+                #fingerprint["selected_port"] = "src" + str(percent_src_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_src_port) + ')'
                 print("\nFilter top port", filter_top_p)
 
@@ -393,7 +392,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
                 filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                 filter_p2 = "false"
-                #result["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
+                #fingerprint["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_dst_port) + ')'
                 print("\nFilter top port", filter_top_p)
                 if (top_ip_proto != 'ICMP') and (percent_src_ports.values[0] > threshold_own):
@@ -416,35 +415,35 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             icmp_type_dis = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(ascending=False)
             if debug: print('\nDISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
             if (percent_dst_ports.keys()[0] > 767) and (percent_dst_ports.keys()[0] < 784):
-                result['additional'] = 'icmp_type: 3'
+                fingerprint['additional'] = 'icmp_type: 3'
                 icmp_port = "df_saved['dst_port'] < 784"
                 df_pattern = df_filtered[df_filtered['dst_port'] < 784]
                 pattern_packets = df_pattern['i_packets'].sum()
                 print("Packets of ICMP Type 3", pattern_packets)
             elif (percent_dst_ports.keys()[0] == 2816) or (percent_dst_ports.keys()[0] == 2817):
-                result['additional'] = 'icmp_type: 11' 
+                fingerprint['additional'] = 'icmp_type: 11' 
                 icmp_port = "df_saved['dst_port'] > 2815"
                 df_pattern = df_filtered[df_filtered['dst_port'] > 2815]
                 pattern_packets = df_pattern['i_packets'].sum()
                 print("Packets of ICMP Type 11", pattern_packets)
             elif (percent_dst_ports.keys()[0] == 1281):
-                result['additional'] = 'icmp_type: 5' 
+                fingerprint['additional'] = 'icmp_type: 5' 
                 icmp_port = "df_saved['dst_port'] == 1281"
                 df_pattern = df_filtered[df_filtered['dst_port'] == 1281]
                 pattern_packets = df_pattern['i_packets'].sum()
                 print("Packets of ICMP Type 5", pattern_packets)
             else:
                 icmp_port = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
-                result['additional'] = 'icmp_type: not specified' 
+                fingerprint['additional'] = 'icmp_type: not specified' 
                 df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
                 pattern_packets = df_pattern['i_packets'].sum()
                 print("Packets of this ICMP attack ", pattern_packets)
 
 
-            vector_filter_string = '('+ str(filter_protocol) + ')&(' + str(icmp_port) + ')'
+            vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(icmp_port) + ')'
 
         if (top_ip_proto == 'UDP'): #(top_ip_proto == 'TCP') or :
-            vector_filter_string = '('+ str(filter_protocol) + ')&(' + str(filter_top_p) + ')'
+            vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')'
             pattern_packets = df_pattern['i_packets'].sum()
 
         if (top_ip_proto == 'TCP'):
@@ -455,7 +454,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 print("Distribution of TCP flags", tcp_flags_dis)
             top_tcp_flags = tcp_flags_dis.keys()[0]
             filter_tcp_flag = "df_saved['tcp_flag'] == '" + top_tcp_flags + "'"
-            vector_filter_string = '('+ str(filter_protocol) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
+            vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
             df_pattern = df_pattern[df_pattern['tcp_flag'] == tcp_flags_dis.keys()[0]]
             pattern_packets = df_pattern['i_packets'].sum()
             percent_tcp_flags = df_pattern.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
@@ -466,11 +465,11 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
 
             # Calculate the total number of packets involved in the attack
-        result["pattern_packet_count"] = pattern_packets
+        fingerprint["pattern_packet_count"] = pattern_packets
 
             # Calculate the percentage of the current pattern compared to the raw input file
-        representativeness = float(pattern_packets) * 100 / float(total_packets_to_target)
-        result["pattern_traffic_share"] = representativeness
+        representativeness = float(pattern_packets) * 100 / float(num_considered_packets)
+        fingerprint["pattern_traffic_share"] = representativeness
         attack_label = 'In %.2f' % representativeness + "\n " + attack_label
 
 
@@ -486,44 +485,44 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             print("\nPATTERN (ATTACK VECTOR) LABEL: " + str(counter) +  vector_filter_string.replace("df_saved", ""))
 
         attack_label = attack_label + "\n" + str(len(ips_involved)) + " source IPs"
-        result["src_ips"] = ips_involved.tolist()
-        result["total_src_ips"] = len(ips_involved)
+        fingerprint["src_ips"] = ips_involved.tolist()
+        fingerprint["total_src_ips"] = len(ips_involved)
 
             # Calculating the number of source IPs involved in the attack
-        result["start_times"] = df_pattern['start_time'].min()
+        fingerprint["start_times"] = df_pattern['start_time'].min()
         p = '%Y-%m-%d %H:%M:%S'
         # epoch is used as offset for the date and time
         epoch = datetime(1970, 1, 1,1)
         start_epoch = (datetime.strptime(df_pattern['start_time'].min(), p) - epoch).total_seconds()
-        result["start_timestamp"] = str(start_epoch)
+        fingerprint["start_timestamp"] = str(start_epoch)
         #for checking if epoch is converted right.
         #dt_object = datetime.fromtimestamp(datat_epoch)
-        #result["2. convertiert"] = str(dt_object)
+        #fingerprint["2. convertiert"] = str(dt_object)
 
         # end_timestamp not included in pcap
-        #result["end_timestamp"] = df_pattern['start_time'].max()
+        #fingerprint["end_timestamp"] = df_pattern['start_time'].max()
         end_epoch = (datetime.strptime(df_pattern['start_time'].max(), p) - epoch).total_seconds()
-        result["duration_sec"] = str(end_epoch - start_epoch)
-        if (float(result["duration_sec"]) > 0):
-            result["avg_pps"] = float(pattern_packets)/float(result["duration_sec"])
-            result["avg_bps"] = df_pattern['i_bytes'].sum()/float(result["duration_sec"])
+        fingerprint["duration_sec"] = str(end_epoch - start_epoch)
+        if (float(fingerprint["duration_sec"]) > 0):
+            fingerprint["avg_pps"] = float(pattern_packets)/float(fingerprint["duration_sec"])
+            fingerprint["avg_bps"] = df_pattern['i_bytes'].sum()/float(fingerprint["duration_sec"])
         else:
-            result["avg_pps"] = 0
-            result["avg_bps"] = 0
-        result['key'] = str(hashlib.md5(str(start_epoch).encode()).hexdigest())
+            fingerprint["avg_pps"] = 0
+            fingerprint["avg_bps"] = 0
+        fingerprint['key'] = str(hashlib.md5(str(start_epoch).encode()).hexdigest())
 
 
         #if (top_ip_proto == 'TCP') or (top_ip_proto == 'UDP'):
             # Calculating the distribution of source ports that remains
         percent_src_ports = df_pattern.groupby(by=['src_port'])['i_packets'].sum().sort_values(ascending=False).divide(float(pattern_packets) / 100)
-        result["src_ports"] = percent_src_ports.to_dict()
-        result["total_src_ports"] = len(percent_src_ports)
+        fingerprint["src_ports"] = percent_src_ports.to_dict()
+        fingerprint["total_src_ports"] = len(percent_src_ports)
 
             # Calculating the distribution of destination ports after the first filter
         percent_dst_ports = df_pattern.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(pattern_packets) / 100)
-        result["dst_ports"] = percent_dst_ports.to_dict()
-        result["total_dst_ports"] = len(result["dst_ports"])
+        fingerprint["dst_ports"] = percent_dst_ports.to_dict()
+        fingerprint["total_dst_ports"] = len(fingerprint["dst_ports"])
         
             
 
@@ -538,7 +537,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     vector_filter_string += '&(' + str(filter_top2_p) + ')'
                     #ips_involved = df_filtered['src_ip'].unique()
                     print(" new filter: ", vector_filter_string)
-                    result["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
+                    fingerprint["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
 
                     # if debug: print("\nCASE 1: 1 source port to 1 destination port") if debug else next
                 port_label = "From " + portnumber2name(
@@ -581,12 +580,12 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
                 df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
                 #filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
-                #result["2. selected_port"] = "src" + str(percent_src_ports.keys()[0])
+                #fingerprint["2. selected_port"] = "src" + str(percent_src_ports.keys()[0])
                 if (top_ip_proto != 'ICMP') and (filter_p2 == "true"):
                     vector_filter_string += '&(' + str(filter_top2_p) + ')'
                     print(" new filter: ", vector_filter_string)
                     #ips_involved = df_filtered['src_ip'].unique()
-                    result["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
+                    fingerprint["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
 
 
                 if debug: print("\nCASE 1: 1 source port to 1 destination port") #if debug else next
@@ -646,9 +645,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
             # Must discuss if it actually stands for nfdump files
         if percent_src_ports.values[0] >= 1:
-            result["reflected"] = True
+            fingerprint["reflected"] = True
             reflection_label = "Reflection & Amplification"
-        result["vector"] = str(vector_filter_string).replace("df_saved", "")
+        fingerprint["vector"] = str(vector_filter_string).replace("df_saved", "")
 
         print(
                 "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top_dst_ip + "\n" +
@@ -667,9 +666,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 print("STOP ANALYSIS; LOOKS LIKE A LOOP; RE-CHECK THE DISSECTOR SOURCE CODE!!")
             break
         if (top_ip_proto == 'ICMP'): 
-            if (result['additional'] == 'icmp_type: 3'):
+            if (fingerprint['additional'] == 'icmp_type: 3'):
                 df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|').replace('<','>'))]
-            elif (result['additional'] == 'icmp_type: 11' ):
+            elif (fingerprint['additional'] == 'icmp_type: 11' ):
                 df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|').replace('>','<'))]
             else:
                 df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|'))]

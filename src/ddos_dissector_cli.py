@@ -66,7 +66,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
     #STEP 3
     print('############################################################################################')
     print('############################################################################################')
-    print('STEP 3: Analysing the dataframe for finding attack patterns...')
+    print('STEP 3: Analysing the dataframe for finding single attack vectors ...')
     victim_ip, fingerprints = ddd.analyze_dataframe(df, dst_ip, file_type)
 
     #STEP 4
@@ -96,7 +96,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
     # STEP 6: Storing the summary of the execution
         print('############################################################################################')
         print('############################################################################################')
-        print("\nSUMMARY:")
+        print("SUMMARY:")
         print(os.path.basename(input_file), 
             fingerprints[0]['multivector_key'], 
             [x['key'] for x in fingerprints],
@@ -110,9 +110,11 @@ def ddos_dissector(input_file, dst_ip, verbose):
         
 
     else:
-        print("\nTHERE ARE NO DDOS ATTACK IN THE INPUT TRAFFIC. POSSIBLY ONLY A DOS ATTACK!\n")
-        
-        print("\nSUMMARY:")
+
+        print("THERE ARE NO DDOS ATTACK IN THE INPUT TRAFFIC. POSSIBLY ONLY A DOS ATTACK!\n")
+        print('############################################################################################')
+        print('############################################################################################')
+        print("SUMMARY:")
         print(os.path.basename(input_file)+";NA;NA;NA;NA")
         ##defining the name of the log file
         logfile_name = os.path.join(settings.OUTPUT_LOCATION,os.path.basename(input_file)+".log")
