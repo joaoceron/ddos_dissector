@@ -85,15 +85,15 @@ def analyze_pcap_dataframe(df, dst_ip):
 
         else:
             # Analyse the distribution of SOURCE ports AND define the top1
-            print('STEP 3.3A: Discovering Top 1 Src Port ')
+            print('STEP 3.3A: Discovering Top 1 Src Port')
             port_source_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['srcport'].value_counts().head()
-            print("\nDISTRIBUTION OF TOP SOURCE PORT:", port_source_distribution)
+            print("\nDISTRIBUTION OF TOP SOURCE PORT: \n", port_source_distribution)
             top1_source_port = math.floor(port_source_distribution.keys()[0])
 
             # Analyse the distribution of DESTINATION ports AND define the top1
             print('STEP 3.3B: Discovering Top 1 Dest Port')
             port_destination_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['dstport'].value_counts().head()
-            print("\nDISTRIBUTION OF TOP DESTINATION PORTS:",port_destination_distribution)
+            print("\nDISTRIBUTION OF TOP DESTINATION PORTS: \n",port_destination_distribution)
             top1_destination_port = math.floor(port_destination_distribution.keys()[0])
             print('********************************************************************************************')
 
@@ -348,22 +348,18 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #if (top1_protocol == 'TCP') or (top1_protocol == 'UDP'):
 
             # Calculate the distribution of source ports based on the first filter
-        print('STEP 3.3A')
+        print('STEP 3.3A: Discovering Top 1 Src Port')
         percent_src_ports = df_filtered.groupby(by=['src_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(total_packets_filtered) / 100)
-        if debug:
-            print("\nDISTRIBUTION OF SOURCE PORT:") 
-            print(percent_src_ports.head())
+        print("\nDISTRIBUTION OF SOURCE PORT:",percent_src_ports.head()) 
             ## does it need a top src port now?
 
             # Calculate the distribution of destination ports after the first filter
-        print('STEP 3.3B')
+        print('STEP 3.3B: Discovering Top 1 Dest Port')
         percent_dst_ports = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(total_packets_filtered) / 100)
 
-        if debug:
-            print("\nDISTRIBUTION OF DESTINATION PORTS:")
-            print(percent_dst_ports.head())
+        print("\nDISTRIBUTION OF DESTINATION PORTS:", percent_dst_ports.head())
 
         print('********************************************************************************************')
 
