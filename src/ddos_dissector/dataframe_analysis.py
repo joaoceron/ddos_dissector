@@ -92,7 +92,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             top1_source_port = math.floor(port_source_distribution.keys()[0])
 
             # Analyse the distribution of DESTINATION ports AND define the top1
-            print('STEP 3.3B: Discovering Top 1 Dest Port')
+            print('\nSTEP 3.3B: Discovering Top 1 Dest Port')
             port_destination_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['dstport'].value_counts(normalize=True).head()
             print("\nDISTRIBUTION OF TOP DESTINATION PORTS: \n",port_destination_distribution)
             top1_destination_port = math.floor(port_destination_distribution.keys()[0])
@@ -291,7 +291,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
     reflection_label = ""
     spoofed_label = ""
     fragment_label = ""
-    threshold_own = 40
+    threshold_1to1 = 40
 
     #STEP 1: Discovering Top 1 Destination IP
     print('STEP 3.1: Discovering Top 1 Destination IP...')
@@ -356,11 +356,14 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             ## does it need a top src port now?
 
             # Calculate the distribution of destination ports after the first filter
-        print('STEP 3.3B: Discovering Top 1 Dest Port')
+        print('\nSTEP 3.3B: Discovering Top 1 Dest Port')
         percent_dst_ports = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(total_packets_filtered) )
 
         print("\nDISTRIBUTION OF DESTINATION PORTS:", percent_dst_ports.head())
+
+
+
 
         print('********************************************************************************************')
 
@@ -373,10 +376,10 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         value_src_dis = 0
         value_dest_dis = 0
 
+        print('\nSTEP 3.3C: Choosing port with highest frequency')
         if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
             if percent_src_ports.values[0] > percent_dst_ports.values[0]:
-                if debug:
-                    print("\nUsing top source port: ", percent_src_ports.keys()[0])
+                print("\nOUTPUT 3.3C: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
 
                 df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
                 filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
@@ -386,17 +389,21 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 print("\nFilter top port", filter_top_p)
 
                 #filter = "src"
-                if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_own):
+                print('\nSTEP 3.3D: Analysing the frequency of the top1 DESTINATION port...')
+                print('threshold =', threshold_1to1)
+                if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
                     print("DST-Port over 50%, it is an own attack")
                     filter_p2 = "true"
                     value_dest_dis = percent_dst_ports.values[0]
                     #filter = "src"
+                    print('OUTPUT 3.3D: filter second port ',filter_top2_p )
+
 
             else:
                 if debug:
-                    print("\nUsing top dest port: ", percent_dst_ports.keys()[0])
+                    print("\nOUTPUT 3.3C: The highest frequency is DESTINATION port:", percent_dst_ports.keys()[0])
 
                 df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
                 filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
@@ -404,12 +411,16 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_dst_port) + ')'
                 print("\nFilter top port", filter_top_p)
-                if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_own):
+
+                print('\nSTEP 3.3D: Analysing the frequency of the top1 SOURCE port...')
+                print('threshold =', threshold_1to1)
+                if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
                     print("Src-Port over 50%, it is an own attack")
                     filter_p2 = "true"
                     value_src_dis = percent_src_ports.values[0]
+                    print('OUTPUT 3.3D: filter second port ',filter_top2_p )
                     #filter = "dst"
 
     
@@ -539,7 +550,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         if percent_src_ports.values[0] == 100:
             #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
             df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
-            if len(percent_dst_ports) == 1 or value_dest_dis > threshold_own:
+            if len(percent_dst_ports) == 1 or value_dest_dis > threshold_1to1:
                 if debug: print("\nCASE 1: 1 source port to 1 destination port")
                 #print(filter)
                 if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
@@ -585,7 +596,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                                      1] + "%], and " + portnumber2name(
                         percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
         else:
-            if len(percent_src_ports) == 1 or value_src_dis > threshold_own:
+            if len(percent_src_ports) == 1 or value_src_dis > threshold_1to1:
                 #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
                 df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
                 #filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
