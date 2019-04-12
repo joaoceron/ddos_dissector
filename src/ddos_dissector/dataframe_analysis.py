@@ -658,6 +658,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             reflection_label = "Reflection & Amplification"
         print("TESTEST++++++++")
         attack_vector["vector"] = str(attack_vector_filter_string).replace("df_saved", "")
+        print(attack_vector["vector"])
 
 
         # print(
