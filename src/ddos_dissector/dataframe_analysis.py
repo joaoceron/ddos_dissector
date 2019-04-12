@@ -45,22 +45,26 @@ def analyze_pcap_dataframe(df, dst_ip):
     print('STEP 3.1: Discovering Top 1 Destination IP... ')
     if dst_ip:
         top1_dst_ip = dst_ip
-        print("OUTPUT 3.1:", top1_dst_ip)
+        print("\nOUTPUT 3.1:", top1_dst_ip)
     else:
         dst_ip_distribution = df['_ws.col.Destination'].value_counts().head()
         print("\nDISTRIBUTION OF TOP DESTINATION IPS: \n", dst_ip_distribution)
         top1_dst_ip = dst_ip_distribution.keys()[0]
-        print("OUTPUT 3.1:", top1_dst_ip)
+        print("\nOUTPUT 3.1:", top1_dst_ip)
+    print('********************************************************************************************')
 
     df_remaining = df[df['_ws.col.Destination'] == top1_dst_ip]
 
     while len(df_remaining) > 1 :
         
         # Analyse the distribution of IP protocols (and defining the top1)
+        #STEP 3.2
+        print('STEP 3.2: Discovering Top 1 IP Protocol...')
         protocol_distribution = df_remaining['_ws.col.Protocol'].value_counts().head()
-        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution)
-        
+        print("DISTRIBUTION OF TOP IP PROTOCOLS: \n",protocol_distribution)
         top1_protocol = protocol_distribution.keys()[0]
+        print("OUTPUT 3.2:", top1_protocol)
+        print('********************************************************************************************')
         filter_top_protocol_string = "df_remaining['_ws.col.Protocol']=='" + str(top1_protocol) + "'"
         attack_vector['ip_protocol'] = top1_protocol
 
