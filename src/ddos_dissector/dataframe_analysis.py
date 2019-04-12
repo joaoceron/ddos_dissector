@@ -442,12 +442,12 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 print("Packets of this ICMP attack ", pattern_packets)
 
 
-            attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(icmp_port) + ')'
+            #attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(icmp_port) + ')'
 
 
 
         if (top1_protocol == 'UDP'): #(top1_protocol == 'TCP') or :
-            attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')'
+           # attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')'
             pattern_packets = df_pattern['i_packets'].sum()
 
 
@@ -461,7 +461,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 print("Distribution of TCP flags", tcp_flags_dis)
             top_tcp_flags = tcp_flags_dis.keys()[0]
             filter_tcp_flag = "df_saved['tcp_flag'] == '" + top_tcp_flags + "'"
-            attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
+            #attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
             df_pattern = df_pattern[df_pattern['tcp_flag'] == tcp_flags_dis.keys()[0]]
             pattern_packets = df_pattern['i_packets'].sum()
             percent_tcp_flags = df_pattern.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
