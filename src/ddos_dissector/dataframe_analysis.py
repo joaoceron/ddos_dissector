@@ -291,7 +291,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
     reflection_label = ""
     spoofed_label = ""
     fragment_label = ""
-    threshold_1to1 = 0.011
+    threshold_1to1 = 0.4
 
     #STEP 1: Discovering Top 1 Destination IP
     print('STEP 3.1: Discovering Top 1 Destination IP...')
