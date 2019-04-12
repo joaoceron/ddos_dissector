@@ -5,6 +5,7 @@ import platform
 import shutil
 import sys
 import tempfile
+import time
 
 # Tries to import the settings for the system (settings.py) if not found then use the default one as new settings config
 try:
@@ -55,28 +56,36 @@ def ddos_dissector(input_file, dst_ip, verbose):
     file_type = ddd.determine_file_type(input_file)
     print('\t OUTPUT:',file_type, 'file')
 
+
     #STEP 2
     print('############################################################################################')
     print('############################################################################################')
+    time_start = time.time()
     print('STEP 2: Converting input file to dataframe...')
     df = ddd.convert_to_dataframe(input_file, file_type)
     rawfile_num_records = len(df)
+    time_convert = time.time() - time_start
     print('\t OUTPUT:',rawfile_num_records, 'converted records')
 
     #STEP 3
     print('############################################################################################')
     print('############################################################################################')
+    time_start = time.time()
     print('STEP 3: Analysing the dataframe for finding single attack vectors ...')
     victim_ip, fingerprints = ddd.analyze_dataframe(df, dst_ip, file_type)
+    time_analysis = time.time()-time_start
 
     #STEP 4
     if len(fingerprints) > 0:
         print('############################################################################################')
         print('############################################################################################')
+        time_start = time.time()
         print('STEP 4: Export fingerprints to json files and annonymizing each attack vector...\n')
         with Pool(settings.POOL_SIZE) as p:
             items = [(input_file, file_type, victim_ip, x) for x in fingerprints]
             p.starmap(anonymize, items)
+
+        time_generating = time.time()-time_start
 
     #STEP 5
         print('############################################################################################')
@@ -93,6 +102,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
             except:
                 print('Fail! The output files were not uploaded to ddosdb.org')
 
+        time_overall = time.time() - time_start
     # STEP 6: Storing the summary of the execution
         print('############################################################################################')
         print('############################################################################################')
@@ -102,6 +112,10 @@ def ddos_dissector(input_file, dst_ip, verbose):
             [x['key'] for x in fingerprints],
             [x['vector'] for x in fingerprints],
             [x['total_src_ips'] for x in fingerprints],
+            time_convert,
+            time_analysis,
+            time_generating,
+            time_overall,
             sep=';')
 
         ##defining the name of the log file

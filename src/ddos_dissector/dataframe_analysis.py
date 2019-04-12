@@ -431,10 +431,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
 
         else:
-            print("STEP 3.5: Analysing the Protocol for idenfying extra information")
+            print("STEP 3.5: Analysing the Protocol for idenfying extra information...")
             icmp_type_dis = df_remaining.groupby(by=['dst_port'])['i_packets'].sum().sort_values(ascending=False)
-            print('DISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
-            print(icmp_type_dis.keys()[0], type(icmp_type_dis.keys()[0]))
+            print('\nDISTRIBUTION ICMP TYPES*:', icmp_type_dis)
             
             if (icmp_type_dis.keys()[0] > 767) and (icmp_type_dis.keys()[0] < 784):
                 attack_vector['additional'] = 'icmp_type: 3'
@@ -468,6 +467,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 df_remaining = df_remaining[df_remaining['dst_port'] == icmp_type_dis.keys()[0]]
                 pattern_packets = df_remaining['i_packets'].sum()
                 print("\nOUTPUT 3.5: ICMP of another type is part of the attack")
+
+            print('********************************************************************************************')
 
 
 
