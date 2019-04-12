@@ -63,7 +63,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         protocol_distribution = df_remaining['_ws.col.Protocol'].value_counts().head()
         print("DISTRIBUTION OF TOP IP PROTOCOLS: \n",protocol_distribution)
         top1_protocol = protocol_distribution.keys()[0]
-        print("OUTPUT 3.2:", top1_protocol)
+        print("\n OUTPUT 3.2:", top1_protocol)
         print('********************************************************************************************')
 
         filter_top_protocol_string = "df_remaining['_ws.col.Protocol']=='" + str(top1_protocol) + "'"
