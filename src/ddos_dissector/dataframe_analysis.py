@@ -65,6 +65,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         top1_protocol = protocol_distribution.keys()[0]
         print("OUTPUT 3.2:", top1_protocol)
         print('********************************************************************************************')
+
         filter_top_protocol_string = "df_remaining['_ws.col.Protocol']=='" + str(top1_protocol) + "'"
         attack_vector['ip_protocol'] = top1_protocol
 
@@ -312,9 +313,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #STEP 2: Discovering Top 1 IP Protocol
         print('STEP 3.2: Discovering Top 1 IP Protocol...')
         protocol_distribution = df_filtered.groupby(by=['ip_protocol'])['i_packets'].sum().sort_values(ascending=False).head()
-        print("DISTRIBUTION OF TOP IP PROTOCOLS: \n",protocol_distribution)
+        print("DISTRIBUTION OF TOP IP PROTOCOLS:",protocol_distribution)
         top1_protocol = protocol_distribution.keys()[0]
-        print('OUTPUT 3.2:', top1_protocol)
+        print('\nOUTPUT 3.2:', top1_protocol)
         print('********************************************************************************************')
 
         filter_top_protocol_string = "df_saved['ip_protocol'] == '" + str(top1_protocol) + "'"
