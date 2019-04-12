@@ -535,110 +535,110 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             
 
             # There are 3 possibilities of attacks cases!
-        if percent_src_ports.values[0] == 100:
-            #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
-            df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
-            if len(percent_dst_ports) == 1 or value_dest_dis > threshold_1to1:
-                if debug: print("\nCASE 1: 1 source port to 1 destination port")
-                #print(filter)
-                # if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
-                #     attack_vector_filter_string += '&(' + str(filter_top2_p) + ')'
-                #     #ips_involved = df_filtered['src_ip'].unique()
-                #     print(" new filter: ", attack_vector_filter_string)
-                #     attack_vector["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
+        # if percent_src_ports.values[0] == 100:
+        #     #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
+        #     df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
+        #     if len(percent_dst_ports) == 1 or value_dest_dis > threshold_1to1:
+        #         if debug: print("\nCASE 1: 1 source port to 1 destination port")
+        #         #print(filter)
+        #         # if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
+        #         #     attack_vector_filter_string += '&(' + str(filter_top2_p) + ')'
+        #         #     #ips_involved = df_filtered['src_ip'].unique()
+        #         #     print(" new filter: ", attack_vector_filter_string)
+        #         #     attack_vector["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
 
-                    # if debug: print("\nCASE 1: 1 source port to 1 destination port") if debug else next
-                port_label = "From " + portnumber2name(
-                    percent_src_ports.keys()[0]) + "\n   - Against " + portnumber2name(
-                    percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
-            else:
-                if debug: print("\nCASE 2: 1 source port to a set of destination ports") #if debug else next
-                if percent_dst_ports.values[0] >= 50:
-                    print("")
-                    # port_label = "From " + portnumber2name(
-                    #     percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
-                    #     len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
-                    #     percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
-                    #                  0] + "%]" + " and " + portnumber2name(
-                    #     percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
-                    #                  percent_dst_ports.values[
-                    #                  1] + "%]"
-                elif percent_dst_ports.values[0] >= 33:
-                    port_label = "From " + portnumber2name(
-                        percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
-                        len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
-                        percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
-                                     0] + "%]" + "; " + portnumber2name(
-                            percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
-                                 percent_dst_ports.values[
-                                     1] + "%], and " + portnumber2name(
-                        percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
-                else:
-                    port_label = "From " + portnumber2name(
-                        percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
-                        len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
-                        percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
-                                     0] + "%]" + "; " + portnumber2name(
-                        percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
-                                     percent_dst_ports.values[
-                                     1] + "%], and " + portnumber2name(
-                        percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
-        else:
-            if len(percent_src_ports) == 1 or value_src_dis > threshold_1to1:
-                #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
-                df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
-                #filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
-                #attack_vector["2. selected_port"] = "src" + str(percent_src_ports.keys()[0])
-                if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
-                    attack_vector_filter_string += '&(' + str(filter_top2_p) + ')'
-                    print(" new filter: ", attack_vector_filter_string)
-                    #ips_involved = df_filtered['src_ip'].unique()
-                    attack_vector["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
+        #             # if debug: print("\nCASE 1: 1 source port to 1 destination port") if debug else next
+        #         port_label = "From " + portnumber2name(
+        #             percent_src_ports.keys()[0]) + "\n   - Against " + portnumber2name(
+        #             percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+        #     else:
+        #         if debug: print("\nCASE 2: 1 source port to a set of destination ports") #if debug else next
+        #         if percent_dst_ports.values[0] >= 50:
+        #             print("")
+        #             # port_label = "From " + portnumber2name(
+        #             #     percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
+        #             #     len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
+        #             #     percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
+        #             #                  0] + "%]" + " and " + portnumber2name(
+        #             #     percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
+        #             #                  percent_dst_ports.values[
+        #             #                  1] + "%]"
+        #         elif percent_dst_ports.values[0] >= 33:
+        #             port_label = "From " + portnumber2name(
+        #                 percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
+        #                 len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
+        #                 percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
+        #                              0] + "%]" + "; " + portnumber2name(
+        #                     percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
+        #                          percent_dst_ports.values[
+        #                              1] + "%], and " + portnumber2name(
+        #                 percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
+        #         else:
+        #             port_label = "From " + portnumber2name(
+        #                 percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
+        #                 len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
+        #                 percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
+        #                              0] + "%]" + "; " + portnumber2name(
+        #                 percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
+        #                              percent_dst_ports.values[
+        #                              1] + "%], and " + portnumber2name(
+        #                 percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
+        # else:
+        #     if len(percent_src_ports) == 1 or value_src_dis > threshold_1to1:
+        #         #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
+        #         df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
+        #         #filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
+        #         #attack_vector["2. selected_port"] = "src" + str(percent_src_ports.keys()[0])
+        #         # if (top1_protocol != 'ICMP') and (filter_p2 == "true"):
+        #         #     attack_vector_filter_string += '&(' + str(filter_top2_p) + ')'
+        #         #     print(" new filter: ", attack_vector_filter_string)
+        #         #     #ips_involved = df_filtered['src_ip'].unique()
+        #         #     attack_vector["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
 
 
-                if debug: print("\nCASE 1: 1 source port to 1 destination port") #if debug else next
-                port_label = "Using " + portnumber2name(percent_src_ports.keys()[0]) + "[" + '%.1f' % \
-                             percent_src_ports.values[
-                                     0] + "%]" + "\n   - Against " + portnumber2name(
-                    percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+        #         if debug: print("\nCASE 1: 1 source port to 1 destination port") #if debug else next
+        #         port_label = "Using " + portnumber2name(percent_src_ports.keys()[0]) + "[" + '%.1f' % \
+        #                      percent_src_ports.values[
+        #                              0] + "%]" + "\n   - Against " + portnumber2name(
+        #             percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
                 
-            else:
-                if debug: print("\nCASE 3: 1 source port to a set of destination ports") #if debug else next
-                #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
-                df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
+        #     else:
+        #         if debug: print("\nCASE 3: 1 source port to a set of destination ports") #if debug else next
+        #         #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
+        #         df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
 
-                if percent_src_ports.values[0] >= 50:
-                    port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
-                                 portnumber2name(percent_src_ports.keys()[0]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[0] + "%] and " + \
-                                 portnumber2name(percent_src_ports.keys()[1]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[1] + "%]" + "\n   - Against " + \
-                                 portnumber2name(percent_dst_ports.keys()[0]) + \
-                                 "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
-                elif percent_src_ports.values[0] >= 33:
-                    port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
-                                 portnumber2name(percent_src_ports.keys()[0]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
-                                 portnumber2name(percent_src_ports.keys()[1]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[1] + "%], and " + \
-                                 portnumber2name(percent_src_ports.keys()[2]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[2] + "%]" + "\n   - Against " + \
-                                 portnumber2name(percent_dst_ports.keys()[0]) + \
-                                 "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
-                else:
-                    #df_pattern = df_pattern[df_pattern['dst_port'].isin(percent_dst_ports.keys()) == False]
-                    df_filtered = df_filtered[df_filtered['dst_port'].isin(percent_dst_ports.keys()) == False]
-                    port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
-                                 portnumber2name(percent_src_ports.keys()[0]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
-                                 portnumber2name(percent_src_ports.keys()[1]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[1] + "%], " + \
-                                 portnumber2name(percent_src_ports.keys()[2]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[2] + "%]; and " + \
-                                 portnumber2name(percent_src_ports.keys()[3]) + \
-                                 "[" + '%.2f' % percent_src_ports.values[3] + "%]\n   - Against " + \
-                                 portnumber2name(percent_dst_ports.keys()[0]) + \
-                                 "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+        #         if percent_src_ports.values[0] >= 50:
+        #             port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
+        #                          portnumber2name(percent_src_ports.keys()[0]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[0] + "%] and " + \
+        #                          portnumber2name(percent_src_ports.keys()[1]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[1] + "%]" + "\n   - Against " + \
+        #                          portnumber2name(percent_dst_ports.keys()[0]) + \
+        #                          "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+        #         elif percent_src_ports.values[0] >= 33:
+        #             port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
+        #                          portnumber2name(percent_src_ports.keys()[0]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
+        #                          portnumber2name(percent_src_ports.keys()[1]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[1] + "%], and " + \
+        #                          portnumber2name(percent_src_ports.keys()[2]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[2] + "%]" + "\n   - Against " + \
+        #                          portnumber2name(percent_dst_ports.keys()[0]) + \
+        #                          "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+        #         else:
+        #             #df_pattern = df_pattern[df_pattern['dst_port'].isin(percent_dst_ports.keys()) == False]
+        #             df_filtered = df_filtered[df_filtered['dst_port'].isin(percent_dst_ports.keys()) == False]
+        #             port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
+        #                          portnumber2name(percent_src_ports.keys()[0]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
+        #                          portnumber2name(percent_src_ports.keys()[1]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[1] + "%], " + \
+        #                          portnumber2name(percent_src_ports.keys()[2]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[2] + "%]; and " + \
+        #                          portnumber2name(percent_src_ports.keys()[3]) + \
+        #                          "[" + '%.2f' % percent_src_ports.values[3] + "%]\n   - Against " + \
+        #                          portnumber2name(percent_dst_ports.keys()[0]) + \
+        #                          "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
 
 
 
