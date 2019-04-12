@@ -268,256 +268,430 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
     :param df_plus: containing the pcap/pcapng file converted
     :return: (1) print the summary of attack vectors and
     """
-    attack_case = "-1"
+    debug = True
+    total_packets = df_plus["i_packets"].sum()
+    all_patterns = []
+    result = {}
+    counter = 1
+    #attack_case = "-1"
     reflection_label = ""
     spoofed_label = ""
     fragment_label = ""
-
-    all_patterns = {
-        "dst_ip": "",
-        "patterns": []
-    }
-
-    df = df_plus
-
-    total_packets = df["i_packets"].sum()
-
-    
-    print("Total number packets: " + str(total_packets))
-    print("IDENTIFYING MAIN CHARACTERISTICS:")
-
-    top_dst_ip = df.groupby(by=['dst_ip'])['i_packets'].sum().sort_values().index[-1]
-    all_patterns["dst_ip"] = top_dst_ip
+    threshold_own = 40
 
 
-    print("Target (destination) IP: " + top_dst_ip)
 
-    # Restrict attacks from outside the network!
-    # df_filtered = df[(df['dst_ip'] == top_dst_ip) &
-    #                  ~df['src_ip'].str.contains(".".join(top_dst_ip.split('.')[0:2]), na=False)]
+    #Distribution of IP addresses
+    ip_dis = df_plus.groupby(by=['dst_ip'])['i_packets'].sum().sort_values(ascending=False)
+    if debug:
+        print("\nDISTRIBUTION OF DESTINATION IPS:")
+        print(ip_dis.head())
 
-    df_filtered = df[df['dst_ip'] == top_dst_ip]
+    if dst_ip:
+        top_dst_ip = dst_ip
+    else:
+        top_dst_ip = ip_dis.keys()[0]
+
+    print("\nATTACK ADDRESS:")
+    print(top_dst_ip)
+
+    df_filtered = df_plus[df_plus['dst_ip'] == top_dst_ip]
+
+    ## a variable is needed to save the data, as df_filtered will be changed in the while-loop to make the code clearer
+    df_saved = df_filtered
 
     total_packets_to_target = df_filtered['i_packets'].sum()
 
+    #if debug:
+     #   print("Number of packets: " + str(total_packets_to_target))
 
-    print("Number of packets: " + str(total_packets_to_target))
+    while len(df_filtered) > 1 :
+        result['file_type'] = 'Netflow'
 
-    while len(df_filtered) > 0:
-        print("---")
-
-        result = {}
-
-        top_ip_proto = df_filtered.groupby(by=['ip_proto'])['i_packets'].sum().sort_values().index[-1]
+        # Analyse the distribution of IP protocols (and defining the top1)
+        protocols_dis = df_filtered.groupby(by=['ip_proto'])['i_packets'].sum().sort_values(ascending=False)
+        if debug:
+            print("\nDISTRIBUTION OF PROTOCOLS:")
+            print(protocols_dis.head())
+        top_ip_proto = protocols_dis.keys()[0]
+        filter_protocol = "df_saved['ip_proto'] == '" + top_ip_proto + "'"
         result['ip_protocol'] = top_ip_proto
-
-        print("IP protocol used in packets going to target IP: " + str(top_ip_proto))
+        #result['dst_ip'] = top_dst_ip
+        
+        vector_filter_string = ""
 
         df_filtered = df_filtered[df_filtered['ip_proto'] == top_ip_proto]
+        
+        ##for pcap is ipv4 here
 
-        # Perform a first filter based on the top_dst_ip (target IP), the source IPs can NOT be from the \16 of the
-        # target IP, and the top IP protocol that targeted the top_dst_ip
 
         # Calculating the number of packets after the first filter
         total_packets_filtered = df_filtered['i_packets'].sum()
-
-        print("Number of packets: " + str(total_packets_filtered))
-
-        result["total_nr_packets"] = total_packets_filtered
+        #if debug:
+        #    print("Number of packets: " + str(total_packets_filtered))
+        #result["total_nr_packets"] = total_packets_filtered
 
         # For attacks in the IP protocol level
         attack_label = top_ip_proto + "-based attack"
-        result["transport_protocol"] = top_ip_proto
+        #result["transport_protocol"] = top_ip_proto
 
         # For attacks based on TCP or UDP, which have source and destination ports
-        if (top_ip_proto == 'TCP') or (top_ip_proto == 'UDP'):
-
-            print("PORT FREQUENCY OF REMAINING PACKETS")
+        #if (top_ip_proto == 'TCP') or (top_ip_proto == 'UDP'):
 
             # Calculate the distribution of source ports based on the first filter
-            percent_src_ports = df_filtered.groupby(by=['src_port'])['i_packets'].sum().sort_values(
-                ascending=False).divide(float(total_packets_filtered) / 100)
-
-            print("SOURCE ports frequency",percent_src_ports.head())
+        percent_src_ports = df_filtered.groupby(by=['src_port'])['i_packets'].sum().sort_values(
+            ascending=False).divide(float(total_packets_filtered) / 100)
+        if debug:
+            print("\nDISTRIBUTION OF SOURCE PORT:") 
+            print(percent_src_ports.head())
+            ## does it need a top src port now?
 
             # Calculate the distribution of destination ports after the first filter
-            percent_dst_ports = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
-                ascending=False).divide(float(total_packets_filtered) / 100)
+        percent_dst_ports = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
+            ascending=False).divide(float(total_packets_filtered) / 100)
 
-            print("\nDESTINATION ports frequency",percent_dst_ports.head())
+        if debug:
+            print("\nDISTRIBUTION OF DESTINATION PORTS:")
+            print(percent_dst_ports.head())
 
             # WARNING packets are filtered here again
             # Using the top 1 (source or destination) port to analyse a pattern of packets
-            if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
-                if percent_src_ports.values[0] > percent_dst_ports.values[0]:
+
+        #filter = ""
+
+        #reset value for recognizing an own attack
+        value_src_dis = 0
+        value_dest_dis = 0
+
+        if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
+            if percent_src_ports.values[0] > percent_dst_ports.values[0]:
+                if debug:
                     print("\nUsing top source port: ", percent_src_ports.keys()[0])
 
-                    df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
-                    result["selected_port"] = "src" + str(percent_src_ports.keys()[0])
-                else:
+                df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
+                filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
+                filter_p2 = "false"
+                #result["selected_port"] = "src" + str(percent_src_ports.keys()[0])
+                #vector_filter_string += '&(' + str(filter_src_port) + ')'
+                print("\nFilter top port", filter_top_p)
+
+                #filter = "src"
+                if (top_ip_proto != 'ICMP') and (percent_dst_ports.values[0] > threshold_own):
+                    filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
+                    df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
+                    print("DST-Port over 50%, it is an own attack")
+                    filter_p2 = "true"
+                    value_dest_dis = percent_dst_ports.values[0]
+                    #filter = "src"
+
+            else:
+                if debug:
                     print("\nUsing top dest port: ", percent_dst_ports.keys()[0])
 
-                    df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
-                    result["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
+                df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
+                filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
+                filter_p2 = "false"
+                #result["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
+                #vector_filter_string += '&(' + str(filter_dst_port) + ')'
+                print("\nFilter top port", filter_top_p)
+                if (top_ip_proto != 'ICMP') and (percent_src_ports.values[0] > threshold_own):
+                    filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
+                    df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
+                    print("Src-Port over 50%, it is an own attack")
+                    filter_p2 = "true"
+                    value_src_dis = percent_src_ports.values[0]
+                    #filter = "dst"
+
+    
+        #else:
+            #if debug:
+                #print('No top source/destination port')
+
+            #return None
+
+
+        if (top_ip_proto == 'ICMP'): 
+            icmp_type_dis = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(ascending=False)
+            if debug: print('\nDISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
+            if (percent_dst_ports.keys()[0] > 767) and (percent_dst_ports.keys()[0] < 784):
+                result['additional'] = 'icmp_type: 3'
+                icmp_port = "df_saved['dst_port'] < 784"
+                df_pattern = df_filtered[df_filtered['dst_port'] < 784]
+                pattern_packets = df_pattern['i_packets'].sum()
+                print("Packets of ICMP Type 3", pattern_packets)
+            elif (percent_dst_ports.keys()[0] == 2816) or (percent_dst_ports.keys()[0] == 2817):
+                result['additional'] = 'icmp_type: 11' 
+                icmp_port = "df_saved['dst_port'] > 2815"
+                df_pattern = df_filtered[df_filtered['dst_port'] > 2815]
+                pattern_packets = df_pattern['i_packets'].sum()
+                print("Packets of ICMP Type 11", pattern_packets)
+            elif (percent_dst_ports.keys()[0] == 1281):
+                result['additional'] = 'icmp_type: 5' 
+                icmp_port = "df_saved['dst_port'] == 1281"
+                df_pattern = df_filtered[df_filtered['dst_port'] == 1281]
+                pattern_packets = df_pattern['i_packets'].sum()
+                print("Packets of ICMP Type 5", pattern_packets)
             else:
-                print('No top source/destination port')
+                icmp_port = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
+                result['additional'] = 'icmp_type: not specified' 
+                df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
+                pattern_packets = df_pattern['i_packets'].sum()
+                print("Packets of this ICMP attack ", pattern_packets)
 
-                return None
 
-            # Calculate the total number of packets involved in the attack
+            vector_filter_string = '('+ str(filter_protocol) + ')&(' + str(icmp_port) + ')'
+
+        if (top_ip_proto == 'UDP'): #(top_ip_proto == 'TCP') or :
+            vector_filter_string = '('+ str(filter_protocol) + ')&(' + str(filter_top_p) + ')'
             pattern_packets = df_pattern['i_packets'].sum()
-            result["pattern_packet_count"] = pattern_packets
 
-            # Calculate the percentage of the current pattern compared to the raw input file
-            representativeness = float(pattern_packets) * 100 / float(total_packets_to_target)
-            result["pattern_traffic_share"] = representativeness
-            attack_label = 'In %.2f' % representativeness + "\n " + attack_label
-
-            # Check the existence of HTTP data
-            # http_data = df_pattern['http_data'].value_counts().divide(float(pattern_packets) / 100)
-            http_data = ''
-
+        if (top_ip_proto == 'TCP'):
             # Check the existence of TCP flags
+            tcp_flags_dis = df_pattern.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
+                ascending=False) #.divide(float(pattern_packets) / 100)
+            if debug:
+                print("Distribution of TCP flags", tcp_flags_dis)
+            top_tcp_flags = tcp_flags_dis.keys()[0]
+            filter_tcp_flag = "df_saved['tcp_flag'] == '" + top_tcp_flags + "'"
+            vector_filter_string = '('+ str(filter_protocol) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
+            df_pattern = df_pattern[df_pattern['tcp_flag'] == tcp_flags_dis.keys()[0]]
+            pattern_packets = df_pattern['i_packets'].sum()
             percent_tcp_flags = df_pattern.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
                 ascending=False).divide(float(pattern_packets) / 100)
 
+
+
+
+
+            # Calculate the total number of packets involved in the attack
+        result["pattern_packet_count"] = pattern_packets
+
+            # Calculate the percentage of the current pattern compared to the raw input file
+        representativeness = float(pattern_packets) * 100 / float(total_packets_to_target)
+        result["pattern_traffic_share"] = representativeness
+        attack_label = 'In %.2f' % representativeness + "\n " + attack_label
+
+
+
             # Calculating the number of source IPs involved in the attack
-            ips_involved = df_pattern['src_ip'].unique()
-            if len(ips_involved) < 2:
+        ips_involved = df_pattern['src_ip'].unique()
+        if len(ips_involved) < 3:
+            if debug:
                 print("\nNO MORE PATTERNS")
-                break
+            break
 
-            print("\nPATTERN (ATTACK VECTOR) LABEL")
+        if debug:
+            print("\nPATTERN (ATTACK VECTOR) LABEL: " + str(counter) +  vector_filter_string.replace("df_saved", ""))
 
-            attack_label = attack_label + "\n" + str(len(ips_involved)) + " source IPs"
-            result["src_ips"] = ips_involved.tolist()
-            result["total_src_ips"] = len(ips_involved)
+        attack_label = attack_label + "\n" + str(len(ips_involved)) + " source IPs"
+        result["src_ips"] = ips_involved.tolist()
+        result["total_src_ips"] = len(ips_involved)
 
             # Calculating the number of source IPs involved in the attack
-            result["start_timestamp"] = df_pattern['start_time'].min()
-            result["end_timestamp"] = df_pattern['start_time'].max()
-            result["avg_pps"] = pattern_packets/(result["end_timestamp"]-result["start_timestamp"])
-            result["avg_bps"] = df_pattern['i_bytes'].sum()/(result["end_timestamp"]-result["start_timestamp"])
+        result["start_times"] = df_pattern['start_time'].min()
+        p = '%Y-%m-%d %H:%M:%S'
+        # epoch is used as offset for the date and time
+        epoch = datetime(1970, 1, 1,1)
+        start_epoch = (datetime.strptime(df_pattern['start_time'].min(), p) - epoch).total_seconds()
+        result["start_timestamp"] = str(start_epoch)
+        #for checking if epoch is converted right.
+        #dt_object = datetime.fromtimestamp(datat_epoch)
+        #result["2. convertiert"] = str(dt_object)
 
+        # end_timestamp not included in pcap
+        #result["end_timestamp"] = df_pattern['start_time'].max()
+        end_epoch = (datetime.strptime(df_pattern['start_time'].max(), p) - epoch).total_seconds()
+        result["duration_sec"] = str(end_epoch - start_epoch)
+        if (float(result["duration_sec"]) > 0):
+            result["avg_pps"] = float(pattern_packets)/float(result["duration_sec"])
+            result["avg_bps"] = df_pattern['i_bytes'].sum()/float(result["duration_sec"])
+        else:
+            result["avg_pps"] = 0
+            result["avg_bps"] = 0
+        result['key'] = str(hashlib.md5(str(start_epoch).encode()).hexdigest())
+
+
+        #if (top_ip_proto == 'TCP') or (top_ip_proto == 'UDP'):
             # Calculating the distribution of source ports that remains
-            percent_src_ports = df_pattern.groupby(by=['src_port'])['i_packets'].sum().sort_values(
-                ascending=False).divide(float(pattern_packets) / 100)
-            result["total_src_ports"] = len(percent_src_ports)
+        percent_src_ports = df_pattern.groupby(by=['src_port'])['i_packets'].sum().sort_values(ascending=False).divide(float(pattern_packets) / 100)
+        result["src_ports"] = percent_src_ports.to_dict()
+        result["total_src_ports"] = len(percent_src_ports)
 
             # Calculating the distribution of destination ports after the first filter
-            percent_dst_ports = df_pattern.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
-                ascending=False).divide(float(pattern_packets) / 100)
-            result["dst_ports"] = percent_dst_ports.to_dict()
-            result["total_dst_ports"] = len(result["dst_ports"])
+        percent_dst_ports = df_pattern.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
+            ascending=False).divide(float(pattern_packets) / 100)
+        result["dst_ports"] = percent_dst_ports.to_dict()
+        result["total_dst_ports"] = len(result["dst_ports"])
+        
+            
 
             # There are 3 possibilities of attacks cases!
-            if percent_src_ports.values[0] == 100:
-                df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
-                if len(percent_dst_ports) == 1:
-                    # print("\nCASE 1: 1 source port to 1 destination port") if debug else next
-                    port_label = "From " + portnumber2name(
-                        percent_src_ports.keys()[0]) + "\n   - Against " + portnumber2name(
-                        percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
-                else:
-                    # print("\nCASE 2: 1 source port to a set of destination ports") if debug else next
-                    if percent_dst_ports.values[0] >= 50:
-                        port_label = "From " + portnumber2name(
-                            percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
-                            len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
-                            percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
-                                         0] + "%]" + " and " + portnumber2name(
-                            percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
-                                     percent_dst_ports.values[
-                                         1] + "%]"
-                    elif percent_dst_ports.values[0] >= 33:
-                        port_label = "From " + portnumber2name(
-                            percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
-                            len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
-                            percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
-                                         0] + "%]" + "; " + portnumber2name(
-                            percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
-                                     percent_dst_ports.values[
-                                         1] + "%], and " + portnumber2name(
-                            percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
-                    else:
-                        port_label = "From " + portnumber2name(
-                            percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
-                            len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
-                            percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
-                                         0] + "%]" + "; " + portnumber2name(
-                            percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
-                                     percent_dst_ports.values[
-                                         1] + "%], and " + portnumber2name(
-                            percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
+        if percent_src_ports.values[0] == 100:
+            #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
+            df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
+            if len(percent_dst_ports) == 1 or value_dest_dis > threshold_own:
+                if debug: print("\nCASE 1: 1 source port to 1 destination port")
+                #print(filter)
+                if (top_ip_proto != 'ICMP') and (filter_p2 == "true"):
+                    vector_filter_string += '&(' + str(filter_top2_p) + ')'
+                    #ips_involved = df_filtered['src_ip'].unique()
+                    print(" new filter: ", vector_filter_string)
+                    result["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
+
+                    # if debug: print("\nCASE 1: 1 source port to 1 destination port") if debug else next
+                port_label = "From " + portnumber2name(
+                    percent_src_ports.keys()[0]) + "\n   - Against " + portnumber2name(
+                    percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
             else:
-                if len(percent_src_ports) == 1:
-                    df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
-
-                    # print("\nCASE 1: 1 source port to 1 destination port") if debug else next
-                    port_label = "Using " + portnumber2name(percent_src_ports.keys()[0]) + "[" + '%.1f' % \
-                                 percent_src_ports.values[
-                                     0] + "%]" + "\n   - Against " + portnumber2name(
-                        percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
-
+                if debug: print("\nCASE 2: 1 source port to a set of destination ports") #if debug else next
+                if percent_dst_ports.values[0] >= 50:
+                    print("")
+                    # port_label = "From " + portnumber2name(
+                    #     percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
+                    #     len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
+                    #     percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
+                    #                  0] + "%]" + " and " + portnumber2name(
+                    #     percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
+                    #                  percent_dst_ports.values[
+                    #                  1] + "%]"
+                elif percent_dst_ports.values[0] >= 33:
+                    port_label = "From " + portnumber2name(
+                        percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
+                        len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
+                        percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
+                                     0] + "%]" + "; " + portnumber2name(
+                            percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
+                                 percent_dst_ports.values[
+                                     1] + "%], and " + portnumber2name(
+                        percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
                 else:
-                    # print("\nCASE 3: 1 source port to a set of destination ports") if debug else next
-                    df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
+                    port_label = "From " + portnumber2name(
+                        percent_src_ports.keys()[0]) + "\n   - Against a set of (" + str(
+                        len(percent_dst_ports)) + ") ports, such as " + portnumber2name(
+                        percent_dst_ports.keys()[0]) + "[" + '%.2f' % percent_dst_ports.values[
+                                     0] + "%]" + "; " + portnumber2name(
+                        percent_dst_ports.keys()[1]) + "[" + '%.2f' % \
+                                     percent_dst_ports.values[
+                                     1] + "%], and " + portnumber2name(
+                        percent_dst_ports.keys()[2]) + "[" + '%.2f' % percent_dst_ports.values[2] + "%]"
+        else:
+            if len(percent_src_ports) == 1 or value_src_dis > threshold_own:
+                #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
+                df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
+                #filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
+                #result["2. selected_port"] = "src" + str(percent_src_ports.keys()[0])
+                if (top_ip_proto != 'ICMP') and (filter_p2 == "true"):
+                    vector_filter_string += '&(' + str(filter_top2_p) + ')'
+                    print(" new filter: ", vector_filter_string)
+                    #ips_involved = df_filtered['src_ip'].unique()
+                    result["Protocol"] = portnumber2name(percent_src_ports.keys()[0])
 
-                    if percent_src_ports.values[0] >= 50:
-                        port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
-                                     portnumber2name(percent_src_ports.keys()[0]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[0] + "%] and " + \
-                                     portnumber2name(percent_src_ports.keys()[1]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[1] + "%]" + "\n   - Against " + \
-                                     portnumber2name(percent_dst_ports.keys()[0]) + \
-                                     "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
-                    elif percent_src_ports.values[0] >= 33:
-                        port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
-                                     portnumber2name(percent_src_ports.keys()[0]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
-                                     portnumber2name(percent_src_ports.keys()[1]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[1] + "%], and " + \
-                                     portnumber2name(percent_src_ports.keys()[2]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[2] + "%]" + "\n   - Against " + \
-                                     portnumber2name(percent_dst_ports.keys()[0]) + \
-                                     "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
-                    else:
-                        df_filtered = df_filtered[df_filtered['dst_port'].isin(percent_dst_ports.keys()) == False]
-                        port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
-                                     portnumber2name(percent_src_ports.keys()[0]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
-                                     portnumber2name(percent_src_ports.keys()[1]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[1] + "%], " + \
-                                     portnumber2name(percent_src_ports.keys()[2]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[2] + "%]; and " + \
-                                     portnumber2name(percent_src_ports.keys()[3]) + \
-                                     "[" + '%.2f' % percent_src_ports.values[3] + "%]\n   - Against " + \
-                                     portnumber2name(percent_dst_ports.keys()[0]) + \
-                                     "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+
+                if debug: print("\nCASE 1: 1 source port to 1 destination port") #if debug else next
+                port_label = "Using " + portnumber2name(percent_src_ports.keys()[0]) + "[" + '%.1f' % \
+                             percent_src_ports.values[
+                                     0] + "%]" + "\n   - Against " + portnumber2name(
+                    percent_dst_ports.keys()[0]) + "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+                
+            else:
+                if debug: print("\nCASE 3: 1 source port to a set of destination ports") #if debug else next
+                #df_pattern = df_pattern[df_pattern['src_port'].isin(percent_src_ports.keys()) == False]
+                df_filtered = df_filtered[df_filtered['src_port'].isin(percent_src_ports.keys()) == False]
+
+                if percent_src_ports.values[0] >= 50:
+                    port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
+                                 portnumber2name(percent_src_ports.keys()[0]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[0] + "%] and " + \
+                                 portnumber2name(percent_src_ports.keys()[1]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[1] + "%]" + "\n   - Against " + \
+                                 portnumber2name(percent_dst_ports.keys()[0]) + \
+                                 "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+                elif percent_src_ports.values[0] >= 33:
+                    port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
+                                 portnumber2name(percent_src_ports.keys()[0]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
+                                 portnumber2name(percent_src_ports.keys()[1]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[1] + "%], and " + \
+                                 portnumber2name(percent_src_ports.keys()[2]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[2] + "%]" + "\n   - Against " + \
+                                 portnumber2name(percent_dst_ports.keys()[0]) + \
+                                 "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+                else:
+                    #df_pattern = df_pattern[df_pattern['dst_port'].isin(percent_dst_ports.keys()) == False]
+                    df_filtered = df_filtered[df_filtered['dst_port'].isin(percent_dst_ports.keys()) == False]
+                    port_label = "From a set of (" + str(len(percent_src_ports)) + ") ports, such as " + \
+                                 portnumber2name(percent_src_ports.keys()[0]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[0] + "%], " + \
+                                 portnumber2name(percent_src_ports.keys()[1]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[1] + "%], " + \
+                                 portnumber2name(percent_src_ports.keys()[2]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[2] + "%]; and " + \
+                                 portnumber2name(percent_src_ports.keys()[3]) + \
+                                 "[" + '%.2f' % percent_src_ports.values[3] + "%]\n   - Against " + \
+                                 portnumber2name(percent_dst_ports.keys()[0]) + \
+                                 "[" + '%.1f' % percent_dst_ports.values[0] + "%]"
+
+
 
             # Testing HTTP request
-            if len(http_data) > 0 and ((percent_dst_ports.index[0] == 80) or (percent_dst_ports.index[0] == 443)):
-                attack_label = attack_label + "; " + http_data.index[0]
+        #if len(http_data) > 0 and ((percent_dst_ports.index[0] == 80) or (percent_dst_ports.index[0] == 443)):
+        #    attack_label = attack_label + "; " + http_data.index[0]
 
             # Testing TCP flags
-            if (len(percent_tcp_flags) > 0) and (percent_tcp_flags.values[0] > 50):
-                attack_label = attack_label + "; TCP flags: " + tcpflagletters2names(
-                    percent_tcp_flags.index[0]) + "[" + '%.1f' % percent_tcp_flags.values[0] + "%]"
+        if (top_ip_proto == 'TCP') and (len(percent_tcp_flags) > 0) and (percent_tcp_flags.values[0] > 50):
+            attack_label = attack_label + "; TCP flags: " + tcpflagletters2names(
+            percent_tcp_flags.index[0]) + "[" + '%.1f' % percent_tcp_flags.values[0] + "%]"
 
             # Must discuss if it actually stands for nfdump files
-            if percent_src_ports.values[0] >= 1:
-                result["reflected"] = True
-                reflection_label = "Reflection & Amplification"
+        if percent_src_ports.values[0] >= 1:
+            result["reflected"] = True
+            reflection_label = "Reflection & Amplification"
+        result["vector"] = str(vector_filter_string).replace("df_saved", "")
 
-            print(
+        print(
                 "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top_dst_ip + "\n" +
                 "   - Involved " + str(len(ips_involved)) + " source IP addresses\n" +
                 "   - Using IP protocol " + protocolnumber2name(top_ip_proto) + "\n" +
                 "   - " + port_label + "\n" +
-                "   - " + fragment_label +
-                "   - " + reflection_label +
-                "   - " + spoofed_label)
+                #"   - " + fragment_label +
+                "   - " + reflection_label + "\n" +
+                #"   - " + spoofed_label + "\n" +
+                "   - " + "number of packets: " + str(pattern_packets))
 
-            all_patterns["patterns"].append(result)
+        all_patterns.append(result)
 
-    return top_dst_ip, all_patterns["patterns"]
+        if len(all_patterns)>10:
+            if debug:
+                print("STOP ANALYSIS; LOOKS LIKE A LOOP; RE-CHECK THE DISSECTOR SOURCE CODE!!")
+            break
+        if (top_ip_proto == 'ICMP'): 
+            if (result['additional'] == 'icmp_type: 3'):
+                df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|').replace('<','>'))]
+            elif (result['additional'] == 'icmp_type: 11' ):
+                df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|').replace('>','<'))]
+            else:
+                df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|'))]
+        else:
+            df_saved = df_saved[eval(vector_filter_string.replace('==', '!=').replace('&', '|'))]
+
+        df_filtered = df_saved
+        counter +=1
+        result = {}
+
+    #Changing keys whether there are attack vectors with the same key   
+    attackvector_keys = [x['key'] for x in all_patterns]
+    for k, i in enumerate(attackvector_keys):
+        repetition_times = attackvector_keys.count(i)
+        if repetition_times >1:
+            attackvector_keys[k]=i+'_'+str(repetition_times)
+            repetition_times -=1   
+    for k, i in enumerate(attackvector_keys):
+        all_patterns[k]['key']=i
+
+
+
+    for x in all_patterns:
+        x['multivector_key']= all_patterns[0]['key']
+
+   
+    return top_dst_ip, all_patterns
