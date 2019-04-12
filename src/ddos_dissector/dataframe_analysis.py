@@ -86,13 +86,14 @@ def analyze_pcap_dataframe(df, dst_ip):
         else:
             # Analyse the distribution of SOURCE ports AND define the top1
             print('STEP 3.3A: Discovering Top 1 Src Port')
-            port_source_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['srcport'].value_counts().head()
+            port_source_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['srcport'].value_counts(normalize=True).head()
             print("\nDISTRIBUTION OF TOP SOURCE PORT: \n", port_source_distribution)
+
             top1_source_port = math.floor(port_source_distribution.keys()[0])
 
             # Analyse the distribution of DESTINATION ports AND define the top1
             print('STEP 3.3B: Discovering Top 1 Dest Port')
-            port_destination_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['dstport'].value_counts().head()
+            port_destination_distribution = df_remaining[df_remaining['ip.proto'] == top1_protocol]['dstport'].value_counts(normalize=True).head()
             print("\nDISTRIBUTION OF TOP DESTINATION PORTS: \n",port_destination_distribution)
             top1_destination_port = math.floor(port_destination_distribution.keys()[0])
             print('********************************************************************************************')
