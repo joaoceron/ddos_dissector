@@ -216,7 +216,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         #     print("TTL VALUE DISTRIBUTION:")
         #     print(df_attack_vector_current['ip.ttl'].value_counts().head())
         
-        attack_vector['vector_filter'] = str(attack_vector_filter_string).replace("df_remaining", "")
+        attack_vector['vector'] = str(attack_vector_filter_string).replace("df_remaining", "")
 
         print("ATTACK VECTOR " + str(counter) + ": " + str(attack_vector['vector_filter']))
         print("  - Packets:" + str(attack_vector['total_packets']))
