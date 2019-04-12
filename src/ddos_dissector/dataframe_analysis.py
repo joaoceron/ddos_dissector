@@ -291,7 +291,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
     reflection_label = ""
     spoofed_label = ""
     fragment_label = ""
-    threshold_1to1 = 40
+    threshold_1to1 = 0.40
 
     #STEP 1: Discovering Top 1 Destination IP
     print('STEP 3.1: Discovering Top 1 Destination IP...')
@@ -376,21 +376,20 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         value_src_dis = 0
         value_dest_dis = 0
 
-        print('\nSTEP 3.3C: Choosing port with highest frequency')
+        
         if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
             if percent_src_ports.values[0] > percent_dst_ports.values[0]:
-                print("\nOUTPUT 3.3C: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
+                print("\nOUTPUT 3.3: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
+                print('THRESHOLD =', threshold_1to1)
 
                 df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
                 filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                 filter_p2 = "false"
                 #attack_vector["selected_port"] = "src" + str(percent_src_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_src_port) + ')'
-                print("\nFilter top port", filter_top_p)
 
                 #filter = "src"
-                print('\nSTEP 3.3D: Analysing the frequency of the top1 DESTINATION port...')
-                print('threshold =', threshold_1to1)
+                print('STEP 3.3C: Analysing DESTINATION frequency with THRESHOLD')
                 if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
@@ -402,18 +401,15 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
 
             else:
-                if debug:
-                    print("\nOUTPUT 3.3C: The highest frequency is DESTINATION port:", percent_dst_ports.keys()[0])
-
+                    
+                print('threshold =', threshold_1to1)
                 df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
                 filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                 filter_p2 = "false"
                 #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_dst_port) + ')'
-                print("\nFilter top port", filter_top_p)
 
-                print('\nSTEP 3.3D: Analysing the frequency of the top1 SOURCE port...')
-                print('threshold =', threshold_1to1)
+                print('STEP 3.3C: Analysing SOURCE frequency with THRESHOLD')
                 if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
