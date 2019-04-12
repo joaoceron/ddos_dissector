@@ -10,6 +10,8 @@ from ddos_dissector.portnumber2name import portnumber2name
 from ddos_dissector.protocolnumber2name import protocolnumber2name
 from ddos_dissector.tcpflagletters2names import tcpflagletters2names
 
+from datetime import datetime
+
 
 def analyze_dataframe(df, dst_ip, file_type):
     """
