@@ -218,7 +218,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         
         attack_vector['vector'] = str(attack_vector_filter_string).replace("df_remaining", "")
 
-        print("ATTACK VECTOR " + str(counter) + ": " + str(attack_vector['vector_filter']))
+        print("ATTACK VECTOR " + str(counter) + ": " + str(attack_vector['vector']))
         print("  - Packets:" + str(attack_vector['total_packets']))
         print("  - #Src_IPs:" + str(attack_vector['total_src_ips']))
 
