@@ -349,23 +349,19 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         #if (top1_protocol == 'TCP') or (top1_protocol == 'UDP'):
 
             # Calculate the distribution of source ports based on the first filter
-        print('STEP 3.3A: Discovering Top 1 Src Port')
+        print('STEP 3.3: Discovering Top 1 Port')
         percent_src_ports = df_filtered.groupby(by=['src_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(total_packets_filtered) )
         print("\nDISTRIBUTION OF SOURCE PORT:",percent_src_ports.head()) 
             ## does it need a top src port now?
 
             # Calculate the distribution of destination ports after the first filter
-        print('\nSTEP 3.3B: Discovering Top 1 Dest Port')
         percent_dst_ports = df_filtered.groupby(by=['dst_port'])['i_packets'].sum().sort_values(
             ascending=False).divide(float(total_packets_filtered) )
 
         print("\nDISTRIBUTION OF DESTINATION PORTS:", percent_dst_ports.head())
 
 
-
-
-        print('********************************************************************************************')
 
             # WARNING packets are filtered here again
             # Using the top 1 (source or destination) port to analyse a pattern of packets
@@ -380,7 +376,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         if (len(percent_src_ports) > 0) and (len(percent_dst_ports) > 0):
             if percent_src_ports.values[0] > percent_dst_ports.values[0]:
                 print("\nOUTPUT 3.3: The highest frequency is SOURCE port: ", percent_src_ports.keys()[0])
-                print('THRESHOLD =', threshold_1to1)
+                print('********************************************************************************************')
+                print('\nTHRESHOLD =', threshold_1to1)
 
                 df_pattern = df_filtered[df_filtered['src_port'] == percent_src_ports.keys()[0]]
                 filter_top_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
@@ -389,7 +386,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #vector_filter_string += '&(' + str(filter_src_port) + ')'
 
                 #filter = "src"
-                print('STEP 3.3C: Analysing DESTINATION frequency with THRESHOLD')
+                print('\nSTEP 3.3C: Analysing DESTINATION frequency with THRESHOLD')
                 if (top1_protocol != 'ICMP') and (percent_dst_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['dst_port'] == percent_dst_ports.keys()[0]]
@@ -402,14 +399,14 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
             else:
                     
-                print('threshold =', threshold_1to1)
+                print('\nTHRESHOLD =', threshold_1to1)
                 df_pattern = df_filtered[df_filtered['dst_port'] == percent_dst_ports.keys()[0]]
                 filter_top_p = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
                 filter_p2 = "false"
                 #attack_vector["selected_port"] = "dst" + str(percent_dst_ports.keys()[0])
                 #vector_filter_string += '&(' + str(filter_dst_port) + ')'
 
-                print('STEP 3.3C: Analysing SOURCE frequency with THRESHOLD')
+                print('\nSTEP 3.3C: Analysing SOURCE frequency with THRESHOLD')
                 if (top1_protocol != 'ICMP') and (percent_src_ports.values[0] > threshold_1to1):
                     filter_top2_p = "df_saved['src_port']==" + str(percent_src_ports.keys()[0])
                     df_pattern = df_pattern[df_pattern['src_port'] == percent_src_ports.keys()[0]]
@@ -418,6 +415,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                     value_src_dis = percent_src_ports.values[0]
                     print('OUTPUT 3.3D: filter second port ',filter_top2_p )
                     #filter = "dst"
+
+        print('********************************************************************************************')
 
     
         #else:
