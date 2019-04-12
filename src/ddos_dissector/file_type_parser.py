@@ -127,7 +127,10 @@ def convert_pcap_to_dataframe(input_file):
     df['ip.ttl'] = df['ip.ttl']
     df['tcp.flags.str'] = df['tcp.flags.str'].str.decode("utf-8")
 
-    df['ip.proto'] = df['ip.proto'].apply(lambda x: x.str.split(',')[0])
+    def split_protocol(self, input):
+      return str(input).split(',')[0]
+
+    df['ip.proto'] = df['ip.proto'].apply(lambda x: split_protocol(x))
 
     return df
 
