@@ -434,9 +434,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             print("STEP 3.5: Analysing the Protocol for idenfying extra information")
             icmp_type_dis = df_remaining.groupby(by=['dst_port'])['i_packets'].sum().sort_values(ascending=False)
             print('DISTRIBUTION ICMP TYPES:\n', icmp_type_dis)
-            print(percent_dst_ports.keys()[0], type(percent_dst_ports.keys()[0]))
+            print(icmp_type_dis.keys()[0], type(icmp_type_dis.keys()[0]))
             
-            if (percent_dst_ports.keys()[0] > 767) and (percent_dst_ports.keys()[0] < 784):
+            if (icmp_type_dis.keys()[0] > 767) and (icmp_type_dis.keys()[0] < 784):
                 attack_vector['additional'] = 'icmp_type: 3'
                 attack_vector_filter_string += "&(df_saved['dst_port'] < 784)"
 
@@ -445,7 +445,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 pattern_packets = df_remaining['i_packets'].sum()
                 print("\nOUTPUT 3.5: ICMP type 3 is part of the attack")
 
-            elif (percent_dst_ports.keys()[0] == 2816) or (percent_dst_ports.keys()[0] == 2817):
+            elif (icmp_type_dis.keys()[0] == 2816) or (icmp_type_dis.keys()[0] == 2817):
                 attack_vector['additional'] = 'icmp_type: 11' 
                 attack_vector_filter_string += "&(df_saved['dst_port'] > 2815)"
 
@@ -454,7 +454,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 pattern_packets = df_remaining['i_packets'].sum()
                 print("\nOUTPUT 3.5: ICMP type 11 is part of the attack")
 
-            elif (percent_dst_ports.keys()[0] == 1281):
+            elif (icmp_type_dis.keys()[0] == 1281):
                 attack_vector['additional'] = 'icmp_type: 5' 
                 attack_vector_filter_string += "&(df_saved['dst_port'] == 1281)"
                 #icmp_port = "df_saved['dst_port'] == 1281"
@@ -463,9 +463,9 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 print("\nOUTPUT 3.5: ICMP type 5 is part of the attack")
 
             else:
-                icmp_port = "df_saved['dst_port']==" + str(percent_dst_ports.keys()[0])
+                icmp_port = "df_saved['dst_port']==" + str(icmp_type_dis.keys()[0])
                 #attack_vector['additional'] = 'icmp_type: not specified' 
-                df_remaining = df_remaining[df_remaining['dst_port'] == percent_dst_ports.keys()[0]]
+                df_remaining = df_remaining[df_remaining['dst_port'] == icmp_type_dis.keys()[0]]
                 pattern_packets = df_remaining['i_packets'].sum()
                 print("\nOUTPUT 3.5: ICMP of another type is part of the attack")
 
