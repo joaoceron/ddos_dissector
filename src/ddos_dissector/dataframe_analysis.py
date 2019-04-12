@@ -684,7 +684,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             else:
                 df_saved = df_saved[eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))]
         else:
-            print(eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|')))
+            print(attack_vector_filter_string)
+            print(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))
             #df_saved = df_saved[eval(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))]
 
 
