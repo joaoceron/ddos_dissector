@@ -657,7 +657,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 #"   - " + spoofed_label + "\n" +
                 "   - " + "number of packets: " + str(pattern_packets))
 
-        all_patterns.append(result)
+        all_patterns.append(attack_vector)
 
         if len(all_patterns)>10:
             if debug:
