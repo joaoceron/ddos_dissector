@@ -657,6 +657,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             reflection_label = "Reflection & Amplification"
         attack_vector["vector"] = str(attack_vector_filter_string).replace("df_saved", "")
 
+        print(attack_vector_filter_string.replace('==', '!=').replace('&', '|'))
+
         print(
                 "\nSUMMARY:\n" + "- %.2f" % representativeness + "% of the packets targeting " + top1_dst_ip + "\n" +
                 "   - Involved " + str(len(ips_involved)) + " source IP addresses\n" +
