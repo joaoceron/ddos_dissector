@@ -418,15 +418,15 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
                 # Check the existence of TCP flags
                 tcp_flags_dis = df_remaining.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
                     ascending=False) #.divide(float(pattern_packets) )
-                if debug:
-                    print("Distribution of TCP flags", tcp_flags_dis)
-                top_tcp_flags = tcp_flags_dis.keys()[0]
-                filter_tcp_flag = "df_saved['tcp_flag'] == '" + top_tcp_flags + "'"
-                #attack_vector_filter_string = '('+ str(filter_top_protocol_string) + ')&(' + str(filter_top_p) + ')&(' + str(filter_tcp_flag) + ')'
+                print("Distribution of TCP flags", tcp_flags_dis)
+                print("\nOUTPUT 3.5: TCP flag:", top_tcp_flags)
+                #top_tcp_flags = tcp_flags_dis.keys()[0]
+                #filter_tcp_flag = "df_saved['tcp_flag'] == '" + top_tcp_flags + "'"
+                attack_vector_filter_string += "&(df_saved['tcp_flag'] == " + str(tcp_flags_dis.keys()[0]) + ")"
                 df_remaining = df_remaining[df_remaining['tcp_flag'] == tcp_flags_dis.keys()[0]]
-                pattern_packets = df_remaining['i_packets'].sum()
-                percent_tcp_flags = df_remaining.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
-                    ascending=False).divide(float(pattern_packets) )
+                pattern_packetds = df_remaining['i_packets'].sum()
+                #percent_tcp_flags = df_remaining.groupby(by=['tcp_flag'])['i_packets'].sum().sort_values(
+                    #ascending=False).divide(float(pattern_packets) )
                 print('********************************************************************************************')
 
 
@@ -690,7 +690,10 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
         df_remaining = df_saved
         counter +=1
-        result = {}
+        attack_vector = {}
+        print("################################################################################")
+        print("################################################################################")
+        print("################################################################################\n")
 
     #Changing keys whether there are attack vectors with the same key   
     attackvector_keys = [x['key'] for x in all_patterns]
