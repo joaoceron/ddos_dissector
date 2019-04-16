@@ -33,10 +33,11 @@ def anonymize_pcap(input_file, victim_ip, fingerprint, file_type):
     
     filter_out = "\"ip.dst == " + victim_ip
 
-    if str(fingerprint['ip_protocol']).lower() == 'ipv4':
+    if fingerprint['ip_protocol'] == '17' and str(int(fingerprint["src_ports"][0])) == '0':
         filter_out += " and ip.frag_offset gt 0" #removed ip.flags.mf == 1 
 
     else:
+
         if len(fingerprint['src_ports']) == 1 and fingerprint['src_ports'][0] != np.nan:
             filter_out += " and (tcp.srcport == " + str(int(fingerprint["src_ports"][0])) + " or udp.srcport == " + str(int(fingerprint["src_ports"][0])) + ")"
 

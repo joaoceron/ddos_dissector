@@ -136,6 +136,9 @@ def analyze_pcap_dataframe(df, dst_ip):
             #Case UDP
             if (top1_protocol == '17'):
 
+                #set service port to 0
+                attack_vector['service'] = "NA"
+
                 #DNS
                 if (top1_source_port == 53) | (top1_destination_port == 53) :
                     if len(df_remaining['dns.qry.name']) > 0:
@@ -174,7 +177,11 @@ def analyze_pcap_dataframe(df, dst_ip):
                         print("\nOUTPUT 3.5: NTP REQCODE:",top1_ntp_response)
                         print('********************************************************************************************')
 
-
+                #Fragmentation
+                # elif (top1_source_port == 0)| (top1_destination_port == 0) :
+                #     print("\nOUTPUT 3.5: Fragmentation")
+                #     attack_vector['additional'] = "Fragmentation"
+                #     print('********************************************************************************************')
 
 
 
@@ -272,6 +279,8 @@ def analyze_pcap_dataframe(df, dst_ip):
         print("  - #Src_IPs:" + str(attack_vector['total_src_ips']))
 
         fingerprints.append(attack_vector)
+
+        print(df_remaining)
 
         print("\n################################################################################")
         print("################################################################################\n")
@@ -501,10 +510,6 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         representativeness = float(pattern_packets) * 100 / float(num_considered_packets)
         attack_vector["pattern_traffic_share"] = representativeness
         #attack_label = 'In %.2f' % representativeness + "\n " + attack_label
-
-         
-        
-
 
             # Calculating the number of source IPs involved in the attack
         ips_involved = df_remaining['src_ip'].unique()
