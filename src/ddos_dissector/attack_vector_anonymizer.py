@@ -46,16 +46,16 @@ def anonymize_pcap(input_file, victim_ip, fingerprint, file_type):
         else:
             pass
 
-        filter_out += " and "+str(fingerprint['ip_protocol']).lower()
+        filter_out += " and ip.proto == "+str(fingerprint['ip_protocol']).lower()
 
-        if str(fingerprint['ip_protocol']).lower() == 'icmp':
-            filter_out += " and icmp.type== "+str(fingerprint['additional']['icmp_type']).split('.')[0]
+        if str(fingerprint['ip_protocol']).lower() == '1':
+            filter_out += " and icmp.type== "+str(fingerprint['additional']['icmp.type']).split('.')[0]
 
         # if str(fingerprint['ip_protocol']).lower() == 'udp':
-            
-        if str(fingerprint['ip_protocol']).lower() == 'dns':
-            filter_out += " and dns.qry.name contains " + str(fingerprint['additional']['dns_query'])
-            filter_out += " and dns.qry.type == " + str(fingerprint['additional']['dns_type']).split('.')[0]
+        if fingerprint['ip_protocol'] == '17':
+            if fingerprint['service'] == 'dns' :
+                filter_out += " and dns.qry.name contains " + str(fingerprint['additional']['dns_query'])
+                filter_out += " and dns.qry.type == " + str(fingerprint['additional']['dns_type']).split('.')[0]
             
         # if str(fingerprint['ip_protocol']).lower() == 'http': 
             
@@ -63,15 +63,15 @@ def anonymize_pcap(input_file, victim_ip, fingerprint, file_type):
 
         # if str(fingerprint['ip_protocol']).lower() == 'udp':
 
-        if str(fingerprint['ip_protocol']).lower() == 'ntp':
-            filter_out += " and ntp.priv.reqcode ==  " + str(fingerprint['additional']['ntp_reqcode'])
+            if str(fingerprint['ip_protocol']).lower() == 'ntp':
+                filter_out += " and ntp.priv.reqcode ==  " + str(fingerprint['additional']['ntp_reqcode'])
 
         # if str(fingerprint['ip_protocol']).lower() == 'chargen:
 
         # if str(fingerprint['ip_protocol']).lower() == 'ssdp':
             # to be filled-in later
 
-        if str(fingerprint['ip_protocol']).lower() != 'icmp':
+        if str(fingerprint['ip_protocol']).lower() != '1':
             filter_out += " and not icmp"
     
     filter_out += "\""
@@ -158,6 +158,7 @@ def anonymize_nfdump(input_file, victim_ip, fingerprint, file_type):
     #filename = timestamp[0].replace("-", "") + fingerprint['ip_protocol'] + timestamp[1].replace(":", "") + \
       #  "_" + str(fingerprint["selected_port"]) + ".nfdump"
 
+    print("NFDUMP filter filter:",filter_out)
     # Filter fingerprint Int64
     def filter_fingerprint(items):
         if type(items) is dict:
@@ -197,7 +198,7 @@ def anonymize_nfdump(input_file, victim_ip, fingerprint, file_type):
                          shell=True, stdout=subprocess.PIPE)
 
 
-    print("writing nfdump file"+ fingerprint['ip_protocol'])
+    #print("writing nfdump file"+ fingerprint['ip_protocol'])
     p.communicate()
     p.wait()
 
