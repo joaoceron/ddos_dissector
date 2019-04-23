@@ -280,8 +280,6 @@ def analyze_pcap_dataframe(df, dst_ip):
 
         fingerprints.append(attack_vector)
 
-        print(df_remaining)
-
         print("\n################################################################################")
         print("################################################################################\n")
 
