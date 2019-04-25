@@ -146,23 +146,22 @@ def analyze_pcap_dataframe(df, dst_ip):
                         print("DISTRIBUTION OF TOP DNS QUERIES:\n",dns_query_distribution)
                         top1_dns_query = dns_query_distribution.keys()[0]
                         filter_dns_query = "df_remaining['dns.qry.name']=='" + str(top1_dns_query) + "'"
-                        if (top1_dns_query != '0':
-                            attack_vector_filter_string += "&(df_saved['dns.qry.name']=='" + str(top1_dns_query) + "')"
-                            df_remaining = df_remaining[df_remaining['dns.qry.name'] == top1_dns_query]
+                        attack_vector_filter_string += "&(df_saved['dns.qry.name']=='" + str(top1_dns_query) + "')"
+                        df_remaining = df_remaining[df_remaining['dns.qry.name'] == top1_dns_query]
 
-                            dns_type_distribution = df_remaining['dns.qry.type'].value_counts().head()
-                            print("\nDISTRIBUTION OF TOP DNS TYPES: \n ",dns_type_distribution)
-                            top1_dns_type = dns_type_distribution.keys()[0]
+                        dns_type_distribution = df_remaining['dns.qry.type'].value_counts().head()
+                        print("\nDISTRIBUTION OF TOP DNS TYPES: \n ",dns_type_distribution)
+                        top1_dns_type = dns_type_distribution.keys()[0]
 
-                            attack_vector['service'] = "DNS"
-                            print("attack_vector['service']")
+                        attack_vector['service'] = "DNS"
+                        print("attack_vector['service']")
                 
-                            attack_vector['additional'] = {
-                            'dns_query': top1_dns_query,
-                            'dns_type': top1_dns_type
-                            }
-                            print("\nOUTPUT 3.5: DNS QUERY TYPE:",top1_dns_type)
-                            print('********************************************************************************************')
+                        attack_vector['additional'] = {
+                        'dns_query': top1_dns_query,
+                        'dns_type': top1_dns_type
+                        }
+                        print("\nOUTPUT 3.5: DNS QUERY TYPE:",top1_dns_type)
+                        print('********************************************************************************************')
 
                 #NTP
                 elif (top1_source_port == 123) | (top1_destination_port == 123) :
