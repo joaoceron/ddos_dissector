@@ -62,6 +62,7 @@ def convert_pcap_to_dataframe(input_file):
                     "-e ip.flags.mf " \
                     "-e ip.frag_offset " \
                     "-e icmp.type " \
+                    "-e icmp.code " \
                     "-e tcp.srcport " \
                     "-e tcp.dstport " \
                     "-e udp.srcport " \
@@ -119,7 +120,7 @@ def convert_pcap_to_dataframe(input_file):
     if ('ip.flags.mf' in df.columns) and ('ip.frag_offset' in df.columns):
         # Analyse fragmented packets
         df['fragmentation'] = (df['ip.flags.mf'] == '1') | (df['ip.frag_offset'] != '0')
-        df.drop(['ip.flags.mf', 'ip.frag_offset'], axis=1, inplace=True)
+        #df.drop(['ip.flags.mf', 'ip.frag_offset'], axis=1, inplace=True)
 
     if 'tcp.flags.str' in df.columns:
         df['tcp.flags.str'] = df['tcp.flags.str'].str.encode("utf-8")  

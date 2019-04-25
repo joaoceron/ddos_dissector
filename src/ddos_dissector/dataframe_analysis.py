@@ -167,7 +167,7 @@ def analyze_pcap_dataframe(df, dst_ip):
                 #NTP
                 elif (top1_source_port == 123) | (top1_destination_port == 123) :
                     if len(df_remaining['ntp.priv.reqcode']) > 0:
-                        ntp_mode_distribution = df_remaining['ntp.priv.reqcode'].value_counts().head()
+                        ntp_mode_distribution = df_remaining['ntp.priv.reqcode'].value_counts(normalize=True).head()
                         print("DISTRIBUTION OF TOP NTP RESPONSE:\n",ntp_mode_distribution)
                         top1_ntp_response = math.floor(ntp_mode_distribution.keys()[0])
                         attack_vector_filter_string += "&(df_saved['ntp.priv.reqcode'] == " + str(top1_ntp_response) + ")"
@@ -179,10 +179,27 @@ def analyze_pcap_dataframe(df, dst_ip):
                         print('********************************************************************************************')
 
                 #Fragmentation
-                # elif (top1_source_port == 0)| (top1_destination_port == 0) :
-                #     print("\nOUTPUT 3.5: Fragmentation")
-                #     attack_vector['additional'] = "Fragmentation"
-                #     print('********************************************************************************************')
+                elif (top1_source_port == 0)| (top1_destination_port == 0) :
+                    print("\nOUTPUT 3.5: Fragmentation")
+                    ip_flag_mf_distribution = df_remaining['ip.flags.mf'].value_counts(normalize=True).head()
+                    print("DISTRIBUTION OF TOP IP FLAG MF\n", ip_flag_mf_distribution)
+                    top1_ip_flag_mf = ip_flag_mf_distribution.keys()[0]
+
+                    ip_flag_offset_distribution = df_remaining['ip.frag_offset'].value_counts(normalize=True).head()
+                    print("DISTRIBUTION OF TOP IP FLAG OFFSET\n", ip_flag_offset_distribution)
+                    top1_ip_flag_offset = ip_flag_offset_distribution.keys()[0]
+
+                    if ip_flag_mf_distribution.iloc[0] == 1:
+                        if ip_flag_offset_distribution.iloc[0] > 1:
+                            attack_vector['additional'] = {'ip_flag_mf':top1_ip_flag_mf, 'ip_flag_offset': top1_ip_flag_offset}
+                        else:
+                            attack_vector['additional'] = {'ip_flag_mf':top1_ip_flag_mf}
+                    elif ip_flag_offset_distribution.iloc[0] > 1:
+                        attack_vector['additional'] = {'ip_flag_offset': top1_ip_flag_offset}
+                    else:
+                        attack_vector['additional'] = "Fragmentation"
+                    
+                    print('********************************************************************************************')
 
 
 
@@ -209,7 +226,16 @@ def analyze_pcap_dataframe(df, dst_ip):
                 ICMP_port_distribution = df_remaining['icmp.type'].value_counts(normalize=True).head()
                 print("\nDISTRIBUTION OF ICMP ports: \n",ICMP_port_distribution)
                 top1_icmp_type = ICMP_port_distribution.keys()[0]
-                attack_vector['additional'] = {'icmp.type': top1_icmp_type}
+
+                ICMP_code_distribution = df_remaining['icmp.code'].value_counts(normalize=True).head()
+                print("\nDISTRIBUTION OF ICMP code: \n",ICMP_code_distribution)
+                top1_icmp_code = ICMP_code_distribution.keys()[0]
+            
+                if (ICMP_code_distribution.iloc[0] == 1):
+                    attack_vector['additional'] = {'icmp.type': top1_icmp_type, 'icmp_code' : top1_icmp_code} 
+                else: 
+                    attack_vector['additional'] = {'icmp.type': top1_icmp_type}
+
                 attack_vector_filter_string += "&(df_saved['icmp.type'] == '" + str(top1_icmp_type) + "')"
                 df_remaining = df_remaining[df_remaining['icmp.type'] == top1_icmp_type]
                 print("\nOUTPUT 3.5: ICMP type",top1_icmp_type,"is part of the attack")
