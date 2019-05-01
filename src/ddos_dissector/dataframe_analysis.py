@@ -257,6 +257,10 @@ def analyze_pcap_dataframe(df, dst_ip):
             print("################################################################################\n")
             break
 
+        ###################################################
+        #FROM HERE WE ANALYSE THE REMAINING SRC_IPS AND THE OVERALL STATISTICS
+        ###################################################
+
         # For later comparing the list of IPs
         attack_vector_source_ips.append(src_ips_attack_vector_current)
 
@@ -268,7 +272,6 @@ def analyze_pcap_dataframe(df, dst_ip):
                                           not math.isnan(x)]
         else:
             attack_vector['src_ports'] = []
-
         attack_vector['total_src_ports'] = len(attack_vector['src_ports'])
 
         if str(df_remaining['dstport'].iloc[0]) != 'nan':
@@ -276,9 +279,8 @@ def analyze_pcap_dataframe(df, dst_ip):
                                           not math.isnan(x)]
         else:
             attack_vector['dst_ports'] = []
-        
-
         attack_vector['total_dst_ports'] = len(attack_vector['dst_ports'])
+
         attack_vector['start_timestamp'] = df_remaining['frame.time_epoch'].iloc[0]
         attack_vector['key'] = str(hashlib.md5(str(attack_vector['start_timestamp']).encode()).hexdigest())
         attack_vector['start_time'] = datetime.fromtimestamp(attack_vector['start_timestamp']).strftime('%Y-%m-%d %H:%M:%S')
@@ -291,13 +293,11 @@ def analyze_pcap_dataframe(df, dst_ip):
             attack_vector_current_size += df_remaining['frame.len'].iloc[i]            
         attack_vector['avg_bps'] = attack_vector_current_size/attack_vector['duration_sec']
 
-        # ttl_variations = \
-        #     df_attack_vector_current.groupby(['_ws.col.Source'])['ip.ttl'].agg(np.ptp).value_counts().sort_index()
-        # if debug:
-        #     print("TTL VARIATION FOR IPS:")
-        #     print(ttl_variations)
-        #     print("TTL VALUE DISTRIBUTION:")
-        #     print(df_attack_vector_current['ip.ttl'].value_counts().head())
+        ttl_variations = df_attack_vector_current.groupby(['_ws.col.Source'])['ip.ttl'].agg(np.ptp).value_counts().sort_index()
+        print("TTL VARIATION FOR IPS:")
+        print(ttl_variations)
+        print("TTL VALUE DISTRIBUTION:")
+        print(df_attack_vector_current['ip.ttl'].value_counts().head())
         
         attack_vector['vector'] = str(attack_vector_filter_string).replace("df_saved", "")
 

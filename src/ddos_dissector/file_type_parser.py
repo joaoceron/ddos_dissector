@@ -124,9 +124,10 @@ def convert_pcap_to_dataframe(input_file):
 
     if 'tcp.flags.str' in df.columns:
         df['tcp.flags.str'] = df['tcp.flags.str'].str.encode("utf-8")  
+        #df['tcp.flags.str'] = df['tcp.flags.str'].str.decode("utf-8")
 
     df['ip.ttl'] = df['ip.ttl']
-    df['tcp.flags.str'] = df['tcp.flags.str'].str.decode("utf-8")
+
 
 
     df['ip.proto'] = df['ip.proto'].apply(lambda x: str(x).split(',')[0])
