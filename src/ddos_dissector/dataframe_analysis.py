@@ -38,7 +38,7 @@ def analyze_pcap_dataframe(df, dst_ip):
     attack_vector_labels = []
     attack_vector_source_ips = []
     counter = 1
-    threshold_1to1 = 0.4
+    threshold_1to1 = 0.6
     threshold_min_srcIPS = 3
 
     
@@ -76,12 +76,10 @@ def analyze_pcap_dataframe(df, dst_ip):
 
         df_remaining = df_remaining[df_remaining['ip.proto'] == top1_protocol]
 
-        # Calculating the number of packets after the first filter
+        # Calculating the number of packets after the first filter (for calculating the percentages bellow)
         total_packets_filtered = len(df_remaining)
 
-        print("################################################################################")
-
-
+        print('********************************************************************************************')
         if (top1_protocol != '1'): #| (top1_protocol == '6'):
             # Analyse the distribution of SOURCE ports AND define the top1
 
@@ -117,12 +115,10 @@ def analyze_pcap_dataframe(df, dst_ip):
                 df_remaining = df_remaining[df_remaining['dstport'] == top1_destination_port]
                 attack_vector_filter_string +="&(df_saved['dstport'] == " + str(top1_destination_port) + ")"
 
-                
-
                 print('********************************************************************************************')
                 print('STEP 3.4: Analysing top 1 SOURCE port frequency and THRESHOLD')
                 print('THRESHOLD =', threshold_1to1)
-
+                print(port_source_distribution.iloc[0])
                 if (port_source_distribution.iloc[0] > threshold_1to1):
                     df_remaining = df_remaining[df_remaining['srcport'] == top1_source_port]
                     attack_vector_filter_string +="&(df_saved['srcport'] == " + str(top1_source_port) + ")"
@@ -293,11 +289,14 @@ def analyze_pcap_dataframe(df, dst_ip):
             attack_vector_current_size += df_remaining['frame.len'].iloc[i]            
         attack_vector['avg_bps'] = attack_vector_current_size/attack_vector['duration_sec']
 
-        ttl_variations = df_attack_vector_current.groupby(['_ws.col.Source'])['ip.ttl'].agg(np.ptp).value_counts().sort_index()
-        print("TTL VARIATION FOR IPS:")
+        print("STEP 3.6: Analysing the TTL variation (max-min) for all source IPs...")
+        ttl_variations = df_remaining.groupby(['_ws.col.Source'])['ip.ttl'].agg(np.ptp).value_counts().sort_index()
+        print("TTL DELTA VARIATION (max - min) FOR SOURCE IPS [delta num_src_ips]:")
         print(ttl_variations)
+        print('********************************************************************************************')
+
         print("TTL VALUE DISTRIBUTION:")
-        print(df_attack_vector_current['ip.ttl'].value_counts().head())
+        print(df_remaining['ip.ttl'].value_counts().head())
         
         attack_vector['vector'] = str(attack_vector_filter_string).replace("df_saved", "")
 
