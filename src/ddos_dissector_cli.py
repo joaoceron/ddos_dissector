@@ -72,7 +72,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
     print('############################################################################################')
     time_start = time.time()
     print('STEP 3: Analysing the dataframe for finding single attack vectors ...')
-    victim_ip, fingerprints = ddd.analyze_dataframe(df, dst_ip, file_type)
+    victim_ip, fingerprints, dns_srcIPs_unique = ddd.analyze_dataframe(df, dst_ip, file_type)
     time_analysis = time.time()-time_start
 
     #STEP 4
@@ -113,6 +113,7 @@ def ddos_dissector(input_file, dst_ip, verbose):
             [x['vector'] for x in fingerprints],
             [x['total_src_ips'] for x in fingerprints],
             [x['total_packets'] for x in fingerprints],
+            dns_srcIPs_unique,
             time_convert,
             time_analysis,
             time_generating,

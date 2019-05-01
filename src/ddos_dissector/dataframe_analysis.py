@@ -263,6 +263,11 @@ def analyze_pcap_dataframe(df, dst_ip):
         attack_vector['src_ips'] = src_ips_attack_vector_current.tolist()
         attack_vector['total_src_ips'] = len(attack_vector['src_ips'])
 
+        if (top1_source_port == 53) | (top1_destination_port == 53) :
+            DNS_sourceIPS += src_ips_attack_vector_current.tolist()
+
+
+
         if str(df_remaining['srcport'].iloc[0]) != 'nan':
             attack_vector['src_ports'] = [int(x) for x in df_remaining['srcport'].unique().tolist() if
                                           not math.isnan(x)]
@@ -345,7 +350,9 @@ def analyze_pcap_dataframe(df, dst_ip):
         matrix_source_ip_intersection.loc[str(m + 1),'Attack vector'] = str(attack_vector_labels[m])
     print("INTERSECTION OF SOURCE IPS IN ATTACK VECTORS:\n",matrix_source_ip_intersection)
 
-    return top1_dst_ip, fingerprints
+    DNS_sourceIPS_unique = len(set(DNS_sourceIPS))
+
+    return top1_dst_ip, fingerprints, DNS_sourceIPS_unique
 
 
 def analyze_nfdump_dataframe(df_plus, dst_ip):
