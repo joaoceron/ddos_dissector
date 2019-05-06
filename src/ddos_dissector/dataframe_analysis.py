@@ -242,6 +242,27 @@ def analyze_pcap_dataframe(df, dst_ip):
         #df_attack_vector_current = df_saved[eval(attack_vector_filter_string)]
 
         src_ips_attack_vector_current = df_remaining['_ws.col.Source'].unique()
+        src_ips = []
+
+        # Determine packet length avg, packet length deviation, ttl avg, ttl deviation, number of packets.
+        for ip in src_ips_attack_vector_current:
+            #df_remaining: pd.DataFrame = df_remaining
+            df_ip = df_remaining.loc[df_remaining["_ws.col.Source"] == ip]
+            packets_sent = df_ip.shape[0]
+            avg_packet_length = df_ip["frame.len"].sum() / packets_sent
+            deviation_packet_length = df_ip["frame.len"].max() - df_ip["frame.len"].min()
+            df_ip["ip.ttl"] = df_ip["ip.ttl"].apply(lambda x: int(x))
+            avg_ttl = int(df_ip["ip.ttl"].sum()) / packets_sent
+            deviation_ttl = int(df_ip["ip.ttl"].max()) - int(df_ip["ip.ttl"].min())
+            src_ips.append({
+                "ip": ip,
+                "pkt_count": packets_sent,
+                "avg_pkt": avg_packet_length,
+                "dev_pkt": deviation_packet_length,
+                "avg_ttl": avg_ttl,
+                "dev_ttl": deviation_ttl
+            })
+
 
         # If the number of source IPs involved in this potential attack vector is 1, then it is NOT a DDoS!
         if len(src_ips_attack_vector_current) < threshold_min_srcIPS:
@@ -261,8 +282,10 @@ def analyze_pcap_dataframe(df, dst_ip):
         attack_vector_source_ips.append(src_ips_attack_vector_current)
 
         attack_vector['src_ips'] = src_ips_attack_vector_current.tolist()
+        attack_vector['src_ips2'] = src_ips
         attack_vector['total_src_ips'] = len(attack_vector['src_ips'])
 
+        DNS_sourceIPS = []
         if (top1_source_port == 53) | (top1_destination_port == 53) :
             DNS_sourceIPS += src_ips_attack_vector_current.tolist()
 
@@ -295,7 +318,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         attack_vector['avg_bps'] = attack_vector_current_size/attack_vector['duration_sec']
 
         print("STEP 3.6: Analysing the TTL variation (max-min) for all source IPs...")
-        ttl_variations = df_remaining.groupby(['_ws.col.Source'])['ip.ttl'].agg(np.ptp).value_counts().sort_index()
+        ttl_variations = df_remaining.groupby(['_ws.col.Source'])['ip.ttl'].apply(lambda x: x.apply(lambda y: int(y))).agg(np.ptp).value_counts().sort_index()
         print("TTL DELTA VARIATION (max - min) FOR SOURCE IPS [delta num_src_ips]:")
         print(ttl_variations)
         print('********************************************************************************************')
