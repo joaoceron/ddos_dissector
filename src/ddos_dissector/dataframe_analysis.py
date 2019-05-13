@@ -254,7 +254,7 @@ def analyze_pcap_dataframe(df, dst_ip):
             packets_sent = df_ip.shape[0]
             avg_packet_length = df_ip["frame.len"].sum() / packets_sent
             deviation_packet_length = df_ip["frame.len"].max() - df_ip["frame.len"].min()
-            df_ip["ip.ttl"] = df_ip["ip.ttl"].apply(lambda x: int(x))
+            df_ip["ip.ttl"] = df_ip["ip.ttl"].apply(lambda x: float(x))
             avg_ttl = int(df_ip["ip.ttl"].sum()) / packets_sent
             deviation_ttl = int(df_ip["ip.ttl"].max()) - int(df_ip["ip.ttl"].min())
             src_ips.append({
