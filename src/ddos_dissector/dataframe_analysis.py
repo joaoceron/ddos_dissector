@@ -40,6 +40,9 @@ def analyze_pcap_dataframe(df, dst_ip):
     counter = 1
     threshold_1to1 = 0.6
     threshold_min_srcIPS = 3
+    DNS_sourceIPS = []
+    DNS_sourceIPS_unique = 0
+
 
     
     print('STEP 3.1: Discovering Top 1 Destination IP... ')
@@ -285,7 +288,7 @@ def analyze_pcap_dataframe(df, dst_ip):
         attack_vector['src_ips2'] = src_ips
         attack_vector['total_src_ips'] = len(attack_vector['src_ips'])
 
-        DNS_sourceIPS = []
+        #DNS_sourceIPS = []
         if (top1_source_port == 53) | (top1_destination_port == 53) :
             DNS_sourceIPS += src_ips_attack_vector_current.tolist()
 
