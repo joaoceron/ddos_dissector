@@ -254,16 +254,16 @@ def analyze_pcap_dataframe(df, dst_ip):
             packets_sent = df_ip.shape[0]
             avg_packet_length = df_ip["frame.len"].sum() / packets_sent
             deviation_packet_length = df_ip["frame.len"].max() - df_ip["frame.len"].min()
-            df_ip["ip.ttl"] = df_ip["ip.ttl"].apply(lambda x: float(x))
-            avg_ttl = int(df_ip["ip.ttl"].sum()) / packets_sent
-            deviation_ttl = int(df_ip["ip.ttl"].max()) - int(df_ip["ip.ttl"].min())
+            #df_ip["ip.ttl"] = df_ip["ip.ttl"].apply(lambda x: int(x))
+            #avg_ttl = int(df_ip["ip.ttl"].sum()) / packets_sent
+            #deviation_ttl = int(df_ip["ip.ttl"].max()) - int(df_ip["ip.ttl"].min())
             src_ips.append({
                 "ip": ip,
                 "pkt_count": packets_sent,
                 "avg_pkt": avg_packet_length,
                 "dev_pkt": deviation_packet_length,
-                "avg_ttl": avg_ttl,
-                "dev_ttl": deviation_ttl
+            #    "avg_ttl": avg_ttl,
+            #    "dev_ttl": deviation_ttl
             })
 
 
@@ -321,10 +321,10 @@ def analyze_pcap_dataframe(df, dst_ip):
         attack_vector['avg_bps'] = attack_vector_current_size/attack_vector['duration_sec']
 
         print("STEP 3.6: Analysing the TTL variation (max-min) for all source IPs...")
-        ttl_variations = df_remaining.groupby(['_ws.col.Source'])['ip.ttl'].apply(lambda x: x.apply(lambda y: int(y))).agg(np.ptp).value_counts().sort_index()
-        print("TTL DELTA VARIATION (max - min) FOR SOURCE IPS [delta num_src_ips]:")
-        print(ttl_variations)
-        print('********************************************************************************************')
+        #ttl_variations = df_remaining.groupby(['_ws.col.Source'])['ip.ttl'].apply(lambda x: x.apply(lambda y: int(y))).agg(np.ptp).value_counts().sort_index()
+        #print("TTL DELTA VARIATION (max - min) FOR SOURCE IPS [delta num_src_ips]:")
+        #print(ttl_variations)
+        #print('********************************************************************************************')
 
         print("TTL VALUE DISTRIBUTION:")
         print(df_remaining['ip.ttl'].value_counts().head())
