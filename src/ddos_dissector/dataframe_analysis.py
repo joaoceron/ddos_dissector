@@ -574,6 +574,44 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         attack_vector["src_ips"] = ips_involved.tolist()
         attack_vector["total_src_ips"] = len(ips_involved)
 
+        src_ips = []
+
+        # Determine packet length avg, packet length deviation, ttl avg, ttl deviation, number of packets.
+        for ip in ips_involved:
+            #df_remaining: pd.DataFrame = df_remaining
+            df_ip = df_remaining.loc[df_remaining["src_ip"] == ip]
+            packets_sent = df_ip.shape[0]
+            #avg_packet_length = df_ip["frame.len"].sum() / packets_sent
+            #deviation_packet_length = df_ip["frame.len"].max() - df_ip["frame.len"].min()
+            #df_ip["ip.ttl"] = df_ip["ip.ttl"].apply(lambda x: int(x))
+            #avg_ttl = int(df_ip["ip.ttl"].sum()) / packets_sent
+            #deviation_ttl = int(df_ip["ip.ttl"].max()) - int(df_ip["ip.ttl"].min())
+            src_ips.append({
+                "ip": ip,
+                "pkt_count": packets_sent,
+            #    "avg_pkt": avg_packet_length,
+            #    "dev_pkt": deviation_packet_length,
+            #    "avg_ttl": avg_ttl,
+            #    "dev_ttl": deviation_ttl
+            })
+
+        src_ips = sorted(src_ips, key=lambda k: k['pkt_count'], reverse = 1)
+
+        if "['src_port'] == 123)"in attack_vector_filter_string:
+        	percentage_filter = 0.2
+        else:
+        	percentage_filter = 0
+
+        threshold_filter = int(percentage_filter / 100 * len(src_ips))
+        
+
+        print("percentage for filter:",percentage_filter, ";threshold_filter: ", threshold_filter )
+            
+        src_ips_filtered = src_ips[: len(src_ips) - threshold_filter] 
+
+        attack_vector["src_ips2"] = src_ips_filtered
+
+
         if len(ips_involved) < threshold_min_srcIPS:
             print("DISCARTED ATTACK VECTOR " + str(counter) + ": " + str(attack_vector_filter_string).replace("df_saved", ""))
             print("  - Packets:" + str(attack_vector['total_packets']))
@@ -811,4 +849,6 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         matrix_source_ip_intersection.loc[str(m + 1),'Attack vector'] = str(attack_vector_labels[m])
     print("INTERSECTION OF SOURCE IPS IN ATTACK VECTORS:\n",matrix_source_ip_intersection)
 
-    return top1_dst_ip, all_patterns
+    DNS_sourceIPS_unique = 0
+
+    return top1_dst_ip, all_patterns, DNS_sourceIPS_unique
