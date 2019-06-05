@@ -570,6 +570,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
 
             # Calculating the number of source IPs involved in the attack
         ips_involved = df_remaining['src_ip'].unique()
+
         #attack_label = attack_label + "\n" + str(len(ips_involved)) + " source IPs"
         attack_vector["src_ips"] = ips_involved.tolist()
         attack_vector["total_src_ips"] = len(ips_involved)
@@ -580,6 +581,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         for ip in ips_involved:
             #df_remaining: pd.DataFrame = df_remaining
             #df_ip = df_remaining.loc[df_remaining["src_ip"] == ip]
+            print(ip)
             df_ip = df_remaining[df_remaining["src_ip"] == ip]
             packets_sent = df_ip.shape[0]
             #avg_packet_length = df_ip["frame.len"].sum() / packets_sent
