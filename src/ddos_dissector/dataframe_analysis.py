@@ -250,7 +250,8 @@ def analyze_pcap_dataframe(df, dst_ip):
         # Determine packet length avg, packet length deviation, ttl avg, ttl deviation, number of packets.
         for ip in src_ips_attack_vector_current:
             #df_remaining: pd.DataFrame = df_remaining
-            df_ip = df_remaining.loc[df_remaining["_ws.col.Source"] == ip]
+            #df_ip = df_remaining.loc[df_remaining["_ws.col.Source"] == ip]
+            df_ip = df_remaining[df_remaining["_ws.col.Source"] == ip]
             packets_sent = df_ip.shape[0]
             avg_packet_length = df_ip["frame.len"].sum() / packets_sent
             deviation_packet_length = df_ip["frame.len"].max() - df_ip["frame.len"].min()
@@ -581,7 +582,6 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         for ip in ips_involved:
             #df_remaining: pd.DataFrame = df_remaining
             #df_ip = df_remaining.loc[df_remaining["src_ip"] == ip]
-            print(ip)
             df_ip = df_remaining[df_remaining["src_ip"] == ip]
             packets_sent = df_ip.shape[0]
             #avg_packet_length = df_ip["frame.len"].sum() / packets_sent
