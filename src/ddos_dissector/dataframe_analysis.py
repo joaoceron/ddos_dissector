@@ -573,8 +573,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         ips_involved = df_remaining['src_ip'].unique()
 
         #attack_label = attack_label + "\n" + str(len(ips_involved)) + " source IPs"
-        attack_vector["src_ips"] = ips_involved.tolist()
-        attack_vector["total_src_ips"] = len(ips_involved)
+        #attack_vector["src_ips"] = ips_involved.tolist()
+        #attack_vector["total_src_ips"] = len(ips_involved)
 
         src_ips = []
 
@@ -612,7 +612,8 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
             
         src_ips_filtered = src_ips[: len(src_ips) - threshold_filter] 
 
-        attack_vector["src_ips2"] = src_ips_filtered
+        attack_vector["src_ips"] = src_ips_filtered
+        attack_vector["total_src_ips"] = len(src_ips_filtered)
 
 
         if len(ips_involved) < threshold_min_srcIPS:
