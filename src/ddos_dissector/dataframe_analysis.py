@@ -601,7 +601,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         src_ips = sorted(src_ips, key=lambda k: k['pkt_count'], reverse = 1)
 
         if "['src_port'] == 123)"in attack_vector_filter_string:
-        	percentage_filter = 0.2
+        	percentage_filter = 0.05
         else:
         	percentage_filter = 0
 
