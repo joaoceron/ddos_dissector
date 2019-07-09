@@ -604,7 +604,7 @@ def analyze_nfdump_dataframe(df_plus, dst_ip):
         	percentage_filter = 0.05
 
         elif "['src_port'] == 53)"in attack_vector_filter_string:
-            percentage_filter = 0.25
+            percentage_filter = 2.5
         else:
         	percentage_filter = 0
 
