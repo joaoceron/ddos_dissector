@@ -1,0 +1,29 @@
+yaf --in testdump10.pcap --out fullpack.yaf
+rwipfix2silk fullpack.yaf --silk-output=test.rw
+rwcut --num-rec=5 test.rw
+rwstats --overall-stats test.rw
+rwstats --fields=1,2 --values=packets --count=20 test.rw
+# top 10 sources port
+rwstats --fields=3 --values=packets --count=10 test.rw
+# top 10 destination port
+rwstats --fields=3 --values=packets --count=10 test.rw
+# row per bin size [ every 2 minutes ] 
+rwcount --bin-size=120 test.rw
+# source port 53 and stats regarding source_ip with threshold > 0.5%
+rwfilter test.rw --sport=53 --pass=stdout | rwstats --fields=sip --percentage=0.5 --bytes
+# scan example detection
+rwsort --fields=sip,proto,dip test.rw | rwscan --scan-model=2
+# all fields
+rwcut --all-fields test.rw >results.txt
+
+
+# rwstats Counting Options
+# --fields={sport, dport, icmp, protocol, sip, dip, sport, dport, ...}
+--value={ records | bytes | packets | sip-distinct | dip-distinct} 
+--count=N --threshold=N --percentage=N
+--top --bottom
+
+rwuniq outtraffic.rw --fields=dip--values=sip-distinct,records,bytes --sip-distinct=400- --sort-output
+
+# ref 
+#https://github.com/ryanbreed/pysilk-notebooks_pytx2014/blob/master/breed_python_tx_redacted.pdf
