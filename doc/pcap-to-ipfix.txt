@@ -16,7 +16,9 @@ rwsort --fields=sip,proto,dip test.rw | rwscan --scan-model=2
 # all fields
 rwcut --all-fields test.rw >results.txt
 
-
+yaf --in testdump3.pcap --out test.yaf --verbose --applabel --max-payload=1024 --plugin-name= /usr/local/lib/yaf/dpacketplugin.la --plugin-opts="DNSSEC 53" --flow-stats --no-stats --noerror --applabel-rules=/usr/local/etc/yafApplabelRules.conf
+ 
+ 
 # rwstats Counting Options
 # --fields={sport, dport, icmp, protocol, sip, dip, sport, dport, ...}
 --value={ records | bytes | packets | sip-distinct | dip-distinct} 
@@ -27,3 +29,8 @@ rwuniq outtraffic.rw --fields=dip--values=sip-distinct,records,bytes --sip-disti
 
 # ref 
 #https://github.com/ryanbreed/pysilk-notebooks_pytx2014/blob/master/breed_python_tx_redacted.pdf
+
+
+
+# DPI
+https://tools.netsa.cert.org/yaf/yafdpi.html
