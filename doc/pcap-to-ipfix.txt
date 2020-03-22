@@ -1,4 +1,8 @@
 yaf --in testdump10.pcap --out fullpack.yaf
+yafscii --in test.yaf --out - | less
+
+
+
 rwipfix2silk fullpack.yaf --silk-output=test.rw
 rwcut --num-rec=5 test.rw
 rwstats --overall-stats test.rw
@@ -17,7 +21,7 @@ rwsort --fields=sip,proto,dip test.rw | rwscan --scan-model=2
 rwcut --all-fields test.rw >results.txt
 
 yaf --in testdump3.pcap --out test.yaf --verbose --applabel --max-payload=1024 --plugin-name= /usr/local/lib/yaf/dpacketplugin.la --plugin-opts="DNSSEC 53" --flow-stats --no-stats --noerror --applabel-rules=/usr/local/etc/yafApplabelRules.conf
- 
+rwipfix2silk fullpack.yaf --silk-output=test.rw
  
 # rwstats Counting Options
 # --fields={sport, dport, icmp, protocol, sip, dip, sport, dport, ...}
