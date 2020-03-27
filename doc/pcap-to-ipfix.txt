@@ -38,3 +38,12 @@ rwuniq outtraffic.rw --fields=dip--values=sip-distinct,records,bytes --sip-disti
 
 # DPI
 https://tools.netsa.cert.org/yaf/yafdpi.html
+
+# pcap -> yaf
+yaf --in h1-monday1436.pcap --out h1-monday1436.flows
+rwipfix2silk h1-monday1436.flows  --silk-output=test.rw
+rwcut --fields=protocol,sip,sport,dip,dport,sTime+msec  flows.rw --delim=',' --timestamp-format=iso,local | sed -e 's/,/, /g'
+rwcut --fields=protocol,sip,sport,dip,dport  flows.rw --delim=','
+rwcut --fields=protocol,sip,sport,dip,dport  flows.rw --delim=',' | sed -e 's/,/, /g'
+
+
